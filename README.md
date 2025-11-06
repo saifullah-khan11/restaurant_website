@@ -16,7 +16,7 @@ The project highlights refined aesthetics, responsive design, and a premium dini
 
 🛠️ Tech Stack
   
-Frontend: HTML5, CSS3, JavaScript
+Frontend: HTML5, CSS3, JavaScript  
 Styling: TailwindCSS  
 Backend : Next.js  
 Database : PostgresSQL(Supabase)
