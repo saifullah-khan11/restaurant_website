@@ -1,9 +1,9 @@
-# restaurant_website.
-🍴 Restaurant Website
+# Mezbaan-e-Khaas
+🍴 Mezbaan-e-Khaas is a modern restaurant brand inspired by Pashtoon hospitality and premium dining culture. The name means “The Special Host,” reflecting a place where every guest is welcomed with honour and served with exceptional taste.  
+This website features a luxury black-and-gold design, a circular emblem logo with mountains and hospitality elements, and a clean, modern UI that showcases the brand’s elegance and cultural roots.  
+The project highlights refined aesthetics, responsive design, and a premium dining experience brought to the web.  
 
-A modern and fully responsive restaurant website designed to showcase the restaurant’s brand, menu, and services. Built with clean code and a focus on user experience, this project provides an elegant interface for customers to explore the menu, make reservations, and get in touch easily.  
-  
-  
+    
 🚀 Features  
   
 🏠 Home Page: Eye-catching hero section with restaurant highlights.  
@@ -16,10 +16,10 @@ A modern and fully responsive restaurant website designed to showcase the restau
 
 🛠️ Tech Stack
   
-Frontend: HTML5, CSS3, JavaScript (or React/Vue if applicable)  
-Styling: Flexbox / Grid / Bootstrap / TailwindCSS  
-Backend (optional): Node.js + Express / PHP / Django  
-Database (optional): MySQL / MongoDB for storing reservations  
+Frontend: HTML5, CSS3, JavaScript
+Styling: TailwindCSS  
+Backend : Next.js  
+Database : PostgresSQL(Supabase)
   
   
 💡 Future Enhancements  
