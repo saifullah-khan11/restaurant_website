@@ -604,11 +604,11 @@ export default function App() {
     const categories = [...new Set(menuItems.map(item => item.category))]
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-warmBeige">
         {renderHeader()}
 
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-burgundy to-burgundy/90 text-white py-16 px-4">
+        <section className="bg-gradient-to-r from-brown to-darkBrown text-white py-16 px-4">
           <div className="container mx-auto text-center">
             <img 
               src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
@@ -616,7 +616,7 @@ export default function App() {
               className="w-32 h-32 mx-auto mb-6 rounded-full object-cover bg-white p-2 shadow-2xl"
             />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Mezbaan-e-Khaas</h1>
-            <p className="text-xl md:text-2xl text-beige mb-6">Your Special Mezbaan — Hospitality with Heart.</p>
+            <p className="text-xl md:text-2xl text-cream mb-6">Your Special Mezbaan — Hospitality with Heart.</p>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
               Experience authentic flavors and warm hospitality. Browse our menu and place your order today!
             </p>
