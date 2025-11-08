@@ -633,10 +633,10 @@ export default function App() {
 
             return (
               <div key={category} className="mb-12">
-                <h3 className="text-2xl font-bold text-burgundy mb-6 border-b-2 border-terracotta pb-2">{category}</h3>
+                <h3 className="text-2xl font-bold text-brown mb-6 border-b-2 border-lightBrown pb-2">{category}</h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {categoryItems.map(item => (
-                    <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all border-burgundy/20 group">
+                    <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all border-brown/20 group">
                       {item.imageUrl && (
                         <div className="h-48 overflow-hidden bg-gray-100">
                           <img 
@@ -651,10 +651,10 @@ export default function App() {
                         <CardDescription className="line-clamp-2">{item.description}</CardDescription>
                       </CardHeader>
                       <CardFooter className="flex justify-between items-center">
-                        <span className="text-2xl font-bold text-burgundy">₹{item.price}</span>
+                        <span className="text-2xl font-bold text-brown">₹{item.price}</span>
                         <Button 
                           onClick={() => addToCart(item)} 
-                          className="bg-terracotta hover:bg-terracotta/90 text-white"
+                          className="bg-lightBrown hover:bg-lightBrown/90 text-white"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Add
@@ -674,7 +674,7 @@ export default function App() {
             <Button
               onClick={goToCart}
               size="lg"
-              className="bg-burgundy hover:bg-burgundy/90 text-white shadow-2xl rounded-full px-6 py-6"
+              className="bg-brown hover:bg-brown/90 text-white shadow-2xl rounded-full px-6 py-6"
             >
               <ShoppingCart className="w-6 h-6 mr-2" />
               View Cart ({cart.length})
@@ -695,14 +695,14 @@ export default function App() {
     const roleLabel = isStaff ? 'Staff' : 'Customer'
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
         {renderHeader()}
         
         <div className="flex items-center justify-center p-4 py-12">
-          <Card className="w-full max-w-md bg-white border-burgundy/20 shadow-xl">
+          <Card className="w-full max-w-md bg-white border-brown/20 shadow-xl">
             <CardHeader>
               <div className="flex justify-center mb-4">
-                <div className="bg-burgundy p-4 rounded-full">
+                <div className="bg-brown p-4 rounded-full">
                   {isStaff ? <ChefHat className="w-10 h-10 text-white" /> : <User className="w-10 h-10 text-white" />}
                 </div>
               </div>
@@ -728,7 +728,7 @@ export default function App() {
                     placeholder="Enter your full name"
                     value={authForm.fullName}
                     onChange={(e) => setAuthForm({ ...authForm, fullName: e.target.value })}
-                    className="bg-white border-burgundy/30"
+                    className="bg-white border-brown/30"
                   />
                 </div>
               )}
@@ -741,7 +741,7 @@ export default function App() {
                   placeholder="Enter your email"
                   value={authForm.email}
                   onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                  className="bg-white border-burgundy/30"
+                  className="bg-white border-brown/30"
                 />
               </div>
 
@@ -754,7 +754,7 @@ export default function App() {
                     placeholder="Enter your password"
                     value={authForm.password}
                     onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                    className="bg-white border-burgundy/30 pr-10"
+                    className="bg-white border-brown/30 pr-10"
                   />
                   <button
                     type="button"
@@ -769,7 +769,7 @@ export default function App() {
               <Button
                 onClick={() => handleAuth(isLogin ? 'login' : 'signup', role)}
                 disabled={isLoading}
-                className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-semibold"
+                className="w-full bg-brown hover:bg-brown/90 text-white font-semibold"
               >
                 {isLoading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
               </Button>
@@ -778,7 +778,7 @@ export default function App() {
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
                 <button
                   onClick={() => setCurrentPage(isLogin ? currentPage.replace('login', 'signup') : currentPage.replace('signup', 'login'))}
-                  className="text-burgundy hover:underline font-semibold"
+                  className="text-brown hover:underline font-semibold"
                 >
                   {isLogin ? 'Sign up' : 'Login'}
                 </button>
@@ -795,19 +795,19 @@ export default function App() {
     const categories = [...new Set(menuItems.map(item => item.category))]
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
         {renderHeader()}
 
         <div className="container mx-auto px-4 py-8">
           {/* Order Type Selector */}
-          <Card className="mb-6 border-burgundy/20">
+          <Card className="mb-6 border-brown/20">
             <CardContent className="pt-6">
               <Label className="text-lg font-semibold mb-3 block">Order Type</Label>
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   onClick={() => setOrderType('dine')}
                   variant={orderType === 'dine' ? 'default' : 'outline'}
-                  className={`h-20 ${orderType === 'dine' ? 'bg-burgundy hover:bg-burgundy/90 text-white' : 'border-burgundy/30'}`}
+                  className={`h-20 ${orderType === 'dine' ? 'bg-brown hover:bg-brown/90 text-white' : 'border-brown/30'}`}
                 >
                   <Store className="w-6 h-6 mr-2" />
                   <div>
@@ -818,7 +818,7 @@ export default function App() {
                 <Button
                   onClick={() => setOrderType('delivery')}
                   variant={orderType === 'delivery' ? 'default' : 'outline'}
-                  className={`h-20 ${orderType === 'delivery' ? 'bg-terracotta hover:bg-terracotta/90 text-white' : 'border-burgundy/30'}`}
+                  className={`h-20 ${orderType === 'delivery' ? 'bg-lightBrown hover:bg-lightBrown/90 text-white' : 'border-brown/30'}`}
                 >
                   <Bike className="w-6 h-6 mr-2" />
                   <div>
@@ -831,12 +831,12 @@ export default function App() {
           </Card>
 
           <Tabs defaultValue="menu" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8 bg-burgundy/10">
-              <TabsTrigger value="menu" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Menu</TabsTrigger>
-              <TabsTrigger value="cart" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
+            <TabsList className="grid w-full grid-cols-3 mb-8 bg-brown/10">
+              <TabsTrigger value="menu" className="data-[state=active]:bg-brown data-[state=active]:text-white">Menu</TabsTrigger>
+              <TabsTrigger value="cart" className="data-[state=active]:bg-brown data-[state=active]:text-white">
                 Cart ({cart.length})
               </TabsTrigger>
-              <TabsTrigger value="orders" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">My Orders</TabsTrigger>
+              <TabsTrigger value="orders" className="data-[state=active]:bg-brown data-[state=active]:text-white">My Orders</TabsTrigger>
             </TabsList>
 
             {/* Menu Tab */}
@@ -847,10 +847,10 @@ export default function App() {
 
                 return (
                   <div key={category}>
-                    <h2 className="text-2xl font-bold text-burgundy mb-4 border-b-2 border-terracotta pb-2">{category}</h2>
+                    <h2 className="text-2xl font-bold text-brown mb-4 border-b-2 border-lightBrown pb-2">{category}</h2>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryItems.map(item => (
-                        <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-shadow border-burgundy/20">
+                        <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-shadow border-brown/20">
                           {item.imageUrl && (
                             <div className="h-48 overflow-hidden bg-warmGray/10">
                               <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -861,8 +861,8 @@ export default function App() {
                             <CardDescription className="line-clamp-2">{item.description}</CardDescription>
                           </CardHeader>
                           <CardFooter className="flex justify-between items-center">
-                            <span className="text-2xl font-bold text-burgundy">₹{item.price}</span>
-                            <Button onClick={() => addToCart(item)} className="bg-terracotta hover:bg-terracotta/90 text-white">
+                            <span className="text-2xl font-bold text-brown">₹{item.price}</span>
+                            <Button onClick={() => addToCart(item)} className="bg-lightBrown hover:bg-lightBrown/90 text-white">
                               <Plus className="w-4 h-4 mr-2" />
                               Add
                             </Button>
@@ -877,7 +877,7 @@ export default function App() {
 
             {/* Cart Tab */}
             <TabsContent value="cart" className="space-y-6">
-              <Card className="border-burgundy/20">
+              <Card className="border-brown/20">
                 <CardHeader>
                   <CardTitle className="text-charcoal">Your Cart</CardTitle>
                 </CardHeader>
@@ -887,17 +887,17 @@ export default function App() {
                   ) : (
                     <>
                       {cart.map(item => (
-                        <div key={item.id} className="flex items-center gap-4 p-4 bg-beige/30 rounded-lg border border-burgundy/20">
+                        <div key={item.id} className="flex items-center gap-4 p-4 bg-cream/30 rounded-lg border border-brown/20">
                           <div className="flex-1">
                             <h3 className="font-semibold text-charcoal">{item.name}</h3>
                             <p className="text-sm text-warmGray">₹{item.price} each</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, -1)} className="border-burgundy/30">
+                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, -1)} className="border-brown/30">
                               <Minus className="w-4 h-4" />
                             </Button>
                             <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, 1)} className="border-burgundy/30">
+                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, 1)} className="border-brown/30">
                               <Plus className="w-4 h-4" />
                             </Button>
                           </div>
@@ -910,12 +910,12 @@ export default function App() {
                         </div>
                       ))}
 
-                      <div className="border-t-2 border-burgundy pt-4 mt-4">
+                      <div className="border-t-2 border-brown pt-4 mt-4">
                         <div className="flex justify-between items-center mb-4">
                           <span className="text-xl font-bold text-charcoal">Total:</span>
-                          <span className="text-2xl font-bold text-burgundy">₹{getCartTotal().toFixed(2)}</span>
+                          <span className="text-2xl font-bold text-brown">₹{getCartTotal().toFixed(2)}</span>
                         </div>
-                        <Button onClick={placeOrder} disabled={isLoading} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-semibold text-lg py-6">
+                        <Button onClick={placeOrder} disabled={isLoading} className="w-full bg-brown hover:bg-brown/90 text-white font-semibold text-lg py-6">
                           {isLoading ? 'Placing order...' : 'Place Order'}
                         </Button>
                       </div>
@@ -928,14 +928,14 @@ export default function App() {
             {/* Orders Tab */}
             <TabsContent value="orders" className="space-y-6">
               {orders.length === 0 ? (
-                <Card className="border-burgundy/20">
+                <Card className="border-brown/20">
                   <CardContent className="py-12">
                     <p className="text-center text-warmGray">No orders yet</p>
                   </CardContent>
                 </Card>
               ) : (
                 orders.map(order => (
-                  <Card key={order.id} className="border-burgundy/20">
+                  <Card key={order.id} className="border-brown/20">
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>
@@ -958,7 +958,7 @@ export default function App() {
                         <span className="text-warmGray">Payment:</span>
                         <span className="font-semibold text-charcoal">{order.paymentMethod === 'dine' ? 'Pay at table' : 'Cash on delivery'}</span>
                       </div>
-                      <div className="border-t border-burgundy/20 pt-2 mt-2">
+                      <div className="border-t border-brown/20 pt-2 mt-2">
                         <h4 className="font-semibold text-charcoal mb-2">Items:</h4>
                         {order.order_items?.map(item => (
                           <div key={item.id} className="flex justify-between text-sm py-1">
@@ -967,9 +967,9 @@ export default function App() {
                           </div>
                         ))}
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
+                      <div className="flex justify-between items-center pt-2 border-t-2 border-brown">
                         <span className="font-bold text-charcoal">Total:</span>
-                        <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
+                        <span className="text-xl font-bold text-brown">₹{order.totalAmount}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -985,7 +985,7 @@ export default function App() {
             <Button
               onClick={goToCart}
               size="lg"
-              className="bg-burgundy hover:bg-burgundy/90 text-white shadow-2xl rounded-full px-6 py-6"
+              className="bg-brown hover:bg-brown/90 text-white shadow-2xl rounded-full px-6 py-6"
             >
               <ShoppingCart className="w-6 h-6 mr-2" />
               View Cart ({cart.length})
@@ -1008,11 +1008,11 @@ export default function App() {
 
         <div className="container mx-auto px-4 py-8">
           <Tabs defaultValue="orders" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-beige/10">
-              <TabsTrigger value="orders" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
+            <TabsList className="grid w-full grid-cols-2 mb-8 bg-cream/10">
+              <TabsTrigger value="orders" className="data-[state=active]:bg-brown data-[state=active]:text-white">
                 Orders Management {pendingOrders.length > 0 && `(${pendingOrders.length} pending)`}
               </TabsTrigger>
-              <TabsTrigger value="menu" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Menu Management</TabsTrigger>
+              <TabsTrigger value="menu" className="data-[state=active]:bg-brown data-[state=active]:text-white">Menu Management</TabsTrigger>
             </TabsList>
 
             {/* Orders Management Tab */}
@@ -1026,7 +1026,7 @@ export default function App() {
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4">
                     {pendingOrders.map(order => (
-                      <Card key={order.id} className="bg-beige border-yellow-500 border-2">
+                      <Card key={order.id} className="bg-cream border-yellow-500 border-2">
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div>
@@ -1050,9 +1050,9 @@ export default function App() {
                               </div>
                             ))}
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
+                          <div className="flex justify-between items-center pt-2 border-t-2 border-brown">
                             <span className="font-bold">Total:</span>
-                            <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
+                            <span className="text-xl font-bold text-brown">₹{order.totalAmount}</span>
                           </div>
                           <div className="flex gap-2 pt-2">
                             <Button onClick={() => updateOrderStatus(order.id, 'accepted')} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
@@ -1077,7 +1077,7 @@ export default function App() {
                   <h2 className="text-2xl font-bold text-white mb-4">Active Orders ({activeOrders.length})</h2>
                   <div className="grid md:grid-cols-2 gap-4">
                     {activeOrders.map(order => (
-                      <Card key={order.id} className="bg-beige border-blue-500 border-2">
+                      <Card key={order.id} className="bg-cream border-blue-500 border-2">
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div>
@@ -1102,9 +1102,9 @@ export default function App() {
                               </div>
                             ))}
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
+                          <div className="flex justify-between items-center pt-2 border-t-2 border-brown">
                             <span className="font-bold">Total:</span>
-                            <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
+                            <span className="text-xl font-bold text-brown">₹{order.totalAmount}</span>
                           </div>
                           <div className="space-y-2 pt-2">
                             {order.status === 'accepted' && (
@@ -1131,7 +1131,7 @@ export default function App() {
                   <h2 className="text-2xl font-bold text-white mb-4">Recent Completed Orders</h2>
                   <div className="grid md:grid-cols-3 gap-4">
                     {completedOrders.slice(0, 6).map(order => (
-                      <Card key={order.id} className="bg-beige/50">
+                      <Card key={order.id} className="bg-cream/50">
                         <CardHeader>
                           <CardTitle className="text-sm text-charcoal">Order #{order.id.slice(0, 8)}</CardTitle>
                           <Badge className={getStatusColor(order.status) + ' text-white w-fit'}>
@@ -1139,7 +1139,7 @@ export default function App() {
                           </Badge>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-lg font-bold text-burgundy">₹{order.totalAmount}</p>
+                          <p className="text-lg font-bold text-brown">₹{order.totalAmount}</p>
                           <p className="text-xs text-warmGray mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                         </CardContent>
                       </Card>
@@ -1152,7 +1152,7 @@ export default function App() {
             {/* Menu Management Tab */}
             <TabsContent value="menu" className="space-y-6">
               {/* Add/Edit Menu Item Form */}
-              <Card className="bg-beige border-burgundy/30">
+              <Card className="bg-cream border-brown/30">
                 <CardHeader>
                   <CardTitle className="text-charcoal">
                     {editingMenuItem ? 'Edit Menu Item' : 'Add New Menu Item'}
@@ -1166,7 +1166,7 @@ export default function App() {
                         placeholder="Item name"
                         value={menuForm.name}
                         onChange={(e) => setMenuForm({ ...menuForm, name: e.target.value })}
-                        className="bg-white border-burgundy/30"
+                        className="bg-white border-brown/30"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1176,7 +1176,7 @@ export default function App() {
                         placeholder="0.00"
                         value={menuForm.price}
                         onChange={(e) => setMenuForm({ ...menuForm, price: e.target.value })}
-                        className="bg-white border-burgundy/30"
+                        className="bg-white border-brown/30"
                       />
                     </div>
                   </div>
@@ -1187,7 +1187,7 @@ export default function App() {
                       placeholder="Item description"
                       value={menuForm.description}
                       onChange={(e) => setMenuForm({ ...menuForm, description: e.target.value })}
-                      className="bg-white border-burgundy/30"
+                      className="bg-white border-brown/30"
                     />
                   </div>
 
@@ -1195,7 +1195,7 @@ export default function App() {
                     <div className="space-y-2">
                       <Label>Category *</Label>
                       <Select value={menuForm.category} onValueChange={(val) => setMenuForm({ ...menuForm, category: val })}>
-                        <SelectTrigger className="bg-white border-burgundy/30">
+                        <SelectTrigger className="bg-white border-brown/30">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1215,7 +1215,7 @@ export default function App() {
                           placeholder="https://example.com/image.jpg"
                           value={menuForm.imageUrl}
                           onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
-                          className="bg-white border-burgundy/30"
+                          className="bg-white border-brown/30"
                         />
                       </div>
                     </div>
@@ -1227,13 +1227,13 @@ export default function App() {
                       id="available"
                       checked={menuForm.isAvailable}
                       onChange={(e) => setMenuForm({ ...menuForm, isAvailable: e.target.checked })}
-                      className="w-4 h-4 text-burgundy border-burgundy/30 rounded focus:ring-burgundy"
+                      className="w-4 h-4 text-brown border-brown/30 rounded focus:ring-brown"
                     />
                     <Label htmlFor="available" className="cursor-pointer">Mark as available</Label>
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button onClick={saveMenuItem} disabled={isLoading} className="bg-burgundy hover:bg-burgundy/90 text-white">
+                    <Button onClick={saveMenuItem} disabled={isLoading} className="bg-brown hover:bg-brown/90 text-white">
                       {isLoading ? 'Saving...' : (editingMenuItem ? 'Update Item' : 'Add Item')}
                     </Button>
                     {editingMenuItem && (
@@ -1247,7 +1247,7 @@ export default function App() {
                           imageUrl: '',
                           isAvailable: true
                         })
-                      }} variant="outline" className="border-burgundy text-charcoal">
+                      }} variant="outline" className="border-brown text-charcoal">
                         Cancel
                       </Button>
                     )}
@@ -1258,7 +1258,7 @@ export default function App() {
               {/* Menu Items List */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {menuItems.map(item => (
-                  <Card key={item.id} className="bg-beige border-burgundy/20">
+                  <Card key={item.id} className="bg-cream border-brown/20">
                     {item.imageUrl && (
                       <div className="h-32 overflow-hidden bg-warmGray/10">
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -1275,10 +1275,10 @@ export default function App() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-warmGray line-clamp-2 mb-2">{item.description}</p>
-                      <p className="text-xl font-bold text-burgundy">₹{item.price}</p>
+                      <p className="text-xl font-bold text-brown">₹{item.price}</p>
                     </CardContent>
                     <CardFooter className="flex gap-2">
-                      <Button onClick={() => startEditMenuItem(item)} size="sm" variant="outline" className="flex-1 border-burgundy/30">
+                      <Button onClick={() => startEditMenuItem(item)} size="sm" variant="outline" className="flex-1 border-brown/30">
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
