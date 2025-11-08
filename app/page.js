@@ -418,14 +418,14 @@ export default function App() {
 
   // Header Component
   const renderHeader = () => (
-    <header className="bg-burgundy text-white shadow-lg sticky top-0 z-50">
+    <header className="bg-brown text-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           {/* Hamburger Menu */}
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-white hover:bg-burgundy/80 p-2"
+            className="text-white hover:bg-brown/80 p-2"
             onClick={() => setShowMobileMenu(!showMobileMenu)}
           >
             {showMobileMenu ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
