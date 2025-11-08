@@ -484,7 +484,7 @@ export default function App() {
           <nav className="container mx-auto px-4 py-6 space-y-3">
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-lg hover:bg-burgundy/20"
+              className="w-full justify-start text-lg hover:bg-lightBrown/20"
               onClick={() => { setCurrentPage('home'); setShowMobileMenu(false); }}
             >
               <HomeIcon className="w-5 h-5 mr-3" />
@@ -495,7 +495,7 @@ export default function App() {
               <>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
                   onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
                 >
                   <UtensilsCrossed className="w-5 h-5 mr-3" />
@@ -503,7 +503,7 @@ export default function App() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
                   onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
                 >
                   <ListOrdered className="w-5 h-5 mr-3" />
@@ -515,7 +515,7 @@ export default function App() {
             {user?.role === 'staff' && (
               <Button 
                 variant="ghost" 
-                className="w-full justify-start text-lg hover:bg-burgundy/20"
+                className="w-full justify-start text-lg hover:bg-lightBrown/20"
                 onClick={() => { setCurrentPage('staff-dashboard'); setShowMobileMenu(false); }}
               >
                 <ChefHat className="w-5 h-5 mr-3" />
@@ -527,7 +527,7 @@ export default function App() {
               <>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
                   onClick={() => { setCurrentPage('customer-login'); setShowMobileMenu(false); }}
                 >
                   <User className="w-5 h-5 mr-3" />
@@ -535,7 +535,7 @@ export default function App() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
                   onClick={() => { setCurrentPage('staff-login'); setShowMobileMenu(false); }}
                 >
                   <ChefHat className="w-5 h-5 mr-3" />
@@ -545,7 +545,7 @@ export default function App() {
             ) : (
               <Button 
                 variant="ghost" 
-                className="w-full justify-start text-lg hover:bg-burgundy/20 text-red-400"
+                className="w-full justify-start text-lg hover:bg-lightBrown/20 text-red-400"
                 onClick={handleLogout}
               >
                 <LogOut className="w-5 h-5 mr-3" />
