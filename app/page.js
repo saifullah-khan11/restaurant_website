@@ -457,7 +457,7 @@ export default function App() {
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-terracotta text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                  <span className="absolute -top-1 -right-1 bg-lightBrown text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
                     {cart.length}
                   </span>
                 )}
@@ -469,7 +469,7 @@ export default function App() {
               onClick={handleLogout} 
               variant="ghost" 
               size="sm" 
-              className="text-white hover:bg-burgundy/80 hidden sm:flex"
+              className="text-white hover:bg-brown/80 hidden sm:flex"
             >
               <LogOut className="w-4 h-4 mr-1" />
               Logout
