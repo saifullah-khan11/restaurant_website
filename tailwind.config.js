@@ -24,23 +24,23 @@ module.exports = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#8B2635",
+          DEFAULT: "#4A2511",
           foreground: "#FFFFFF",
         },
         secondary: {
           DEFAULT: "#F5E6D3",
-          foreground: "#1A1A1A",
+          foreground: "#4A2511",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "#9CA3AF",
-          foreground: "#1A1A1A",
+          DEFAULT: "#A89F91",
+          foreground: "#4A2511",
         },
         accent: {
-          DEFAULT: "#D4704F",
+          DEFAULT: "#8B5A3C",
           foreground: "#FFFFFF",
         },
         popover: {
@@ -51,11 +51,12 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        burgundy: "#8B2635",
-        beige: "#F5E6D3",
-        charcoal: "#1A1A1A",
-        terracotta: "#D4704F",
-        warmGray: "#6B7280",
+        brown: "#4A2511",
+        darkBrown: "#2B1508",
+        lightBrown: "#8B5A3C",
+        cream: "#F5E6D3",
+        warmBeige: "#E8D5C4",
+        mutedBrown: "#A89F91",
       },
       borderRadius: {
         lg: "var(--radius)",
