@@ -440,7 +440,7 @@ export default function App() {
             />
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold">Mezbaan-e-Khaas</h1>
-              <p className="text-xs text-beige">Your Special Mezbaan — Hospitality with Heart.</p>
+              <p className="text-xs text-cream">Your Special Mezbaan — Hospitality with Heart.</p>
             </div>
           </div>
         </div>
@@ -452,7 +452,7 @@ export default function App() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-white hover:bg-burgundy/80"
+                className="text-white hover:bg-brown/80"
                 onClick={goToCart}
               >
                 <ShoppingCart className="w-5 h-5" />
