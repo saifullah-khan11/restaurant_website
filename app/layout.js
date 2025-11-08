@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Next.js MongoDB Template',
-  description: 'A simple template with App Router, MongoDB, and shadcn/ui',
+  title: 'Mezbaan-e-Khaas - Your Special Mezbaan',
+  description: 'Your Special Mezbaan — Hospitality with Heart. Experience authentic flavors and warm hospitality.',
 }
 
 export default function RootLayout({ children }) {
