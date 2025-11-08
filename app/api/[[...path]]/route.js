@@ -90,13 +90,7 @@ export async function POST(request) {
         return handleError(userError, 'Failed to create user')
       }
 
-      // Mark staff code as used if staff
-      if (role === 'staff') {
-        await supabase
-          .from('staff_codes')
-          .update({ isUsed: true, usedBy: userId })
-          .eq('code', staffCode)
-      }
+      // Staff user created successfully
 
       return NextResponse.json({
         success: true,
