@@ -5,47 +5,47 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 17%;
+    --foreground: 0 0% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 17%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 17%;
-    --primary: 45 67% 53%;
-    --primary-foreground: 0 0% 17%;
-    --secondary: 60 100% 93%;
-    --secondary-foreground: 0 0% 17%;
-    --muted: 0 0% 66%;
-    --muted-foreground: 0 0% 17%;
-    --accent: 0 0% 17%;
-    --accent-foreground: 60 100% 93%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 349 59% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 36 50% 90%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 220 9% 64%;
+    --muted-foreground: 0 0% 10%;
+    --accent: 13 57% 57%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89%;
     --input: 0 0% 89%;
-    --ring: 45 67% 53%;
+    --ring: 349 59% 36%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 17%;
-    --foreground: 60 100% 93%;
-    --card: 0 0% 17%;
-    --card-foreground: 60 100% 93%;
-    --popover: 0 0% 17%;
-    --popover-foreground: 60 100% 93%;
-    --primary: 45 67% 53%;
-    --primary-foreground: 0 0% 17%;
-    --secondary: 60 100% 93%;
-    --secondary-foreground: 0 0% 17%;
-    --muted: 0 0% 66%;
-    --muted-foreground: 0 0% 17%;
-    --accent: 0 0% 17%;
-    --accent-foreground: 60 100% 93%;
+    --background: 0 0% 10%;
+    --foreground: 36 50% 90%;
+    --card: 0 0% 10%;
+    --card-foreground: 36 50% 90%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 36 50% 90%;
+    --primary: 349 59% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 36 50% 90%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 220 9% 64%;
+    --muted-foreground: 0 0% 10%;
+    --accent: 13 57% 57%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 27%;
     --input: 0 0% 27%;
-    --ring: 45 67% 53%;
+    --ring: 349 59% 36%;
   }
 }
 
@@ -56,4 +56,38 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in;
 }
