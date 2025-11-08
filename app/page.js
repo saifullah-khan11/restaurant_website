@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff, ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, XCircle, Edit, Upload, ChefHat, User, LogOut, Package, UtensilsCrossed } from 'lucide-react'
+import { Eye, EyeOff, ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, XCircle, Edit, Upload, ChefHat, User, LogOut, Package, UtensilsCrossed, Menu as MenuIcon, X, Home as HomeIcon, ListOrdered, Store, Bike } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -15,17 +15,17 @@ import { useToast } from '@/hooks/use-toast'
 import { Toaster } from '@/components/ui/toaster'
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('landing') // landing, customer-login, customer-signup, staff-login, staff-signup, customer-dashboard, staff-dashboard
+  const [currentPage, setCurrentPage] = useState('home') // home, customer-login, customer-signup, staff-login, customer-dashboard, staff-dashboard
   const [user, setUser] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const { toast } = useToast()
 
   // Auth state
   const [authForm, setAuthForm] = useState({
     email: '',
     password: '',
-    fullName: '',
-    staffCode: ''
+    fullName: ''
   })
   const [authError, setAuthError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -33,7 +33,8 @@ export default function App() {
   // Menu state
   const [menuItems, setMenuItems] = useState([])
   const [cart, setCart] = useState([])
-  const [orderType, setOrderType] = useState('dine')
+  const [orderType, setOrderType] = useState('dine') // 'dine' or 'delivery'
+  const [showOrderTypeModal, setShowOrderTypeModal] = useState(false)
 
   // Orders state
   const [orders, setOrders] = useState([])
@@ -107,7 +108,7 @@ export default function App() {
   }
 
   // Handle authentication
-  const handleAuth = async (type) => {
+  const handleAuth = async (type, role) => {
     setAuthError('')
     setIsLoading(true)
 
@@ -124,14 +125,6 @@ export default function App() {
       return
     }
 
-    const role = currentPage.includes('customer') ? 'customer' : 'staff'
-
-    if (type === 'signup' && role === 'staff' && !authForm.staffCode) {
-      setAuthError('Staff code is required for staff registration')
-      setIsLoading(false)
-      return
-    }
-
     try {
       const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/signup'
       const body = {
@@ -142,9 +135,6 @@ export default function App() {
 
       if (type === 'signup') {
         body.fullName = authForm.fullName
-        if (role === 'staff') {
-          body.staffCode = authForm.staffCode
-        }
       }
 
       const response = await fetch(endpoint, {
@@ -164,7 +154,8 @@ export default function App() {
       // Success
       setUser(data.user)
       setCurrentPage(role === 'customer' ? 'customer-dashboard' : 'staff-dashboard')
-      setAuthForm({ email: '', password: '', fullName: '', staffCode: '' })
+      setAuthForm({ email: '', password: '', fullName: '' })
+      setShowMobileMenu(false)
       toast({
         title: 'Success!',
         description: `Welcome ${data.user.fullName}!`
@@ -177,8 +168,14 @@ export default function App() {
     setIsLoading(false)
   }
 
-  // Add to cart
+  // Add to cart with login check
   const addToCart = (item) => {
+    if (!user) {
+      // Show order type modal first, then login
+      setShowOrderTypeModal(true)
+      return
+    }
+
     const existingItem = cart.find(i => i.id === item.id)
     if (existingItem) {
       setCart(cart.map(i => 
@@ -191,6 +188,13 @@ export default function App() {
       title: 'Added to cart',
       description: `${item.name} added to your cart`
     })
+  }
+
+  // Handle order type selection and proceed to login
+  const handleOrderTypeSelect = (type) => {
+    setOrderType(type)
+    setShowOrderTypeModal(false)
+    setCurrentPage('customer-login')
   }
 
   // Update cart quantity
@@ -392,171 +396,396 @@ export default function App() {
     setCart([])
     setOrders([])
     setAllOrders([])
-    setCurrentPage('landing')
+    setCurrentPage('home')
+    setShowMobileMenu(false)
     toast({
       title: 'Logged out',
       description: 'You have been logged out successfully'
     })
   }
 
+  // Navigate to cart
+  const goToCart = () => {
+    if (!user) {
+      setShowOrderTypeModal(true)
+      return
+    }
+    setCurrentPage('customer-dashboard')
+    // Optionally scroll to cart section or switch tab
+  }
+
   // ========== RENDER COMPONENTS ==========
 
-  // Landing Page
-  const renderLanding = () => (
-    <div className="min-h-screen bg-gradient-to-br from-charcoal via-warmGray to-charcoal flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl bg-cream/95 backdrop-blur border-gold/20">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-br from-gold to-yellow-600 p-6 rounded-full shadow-2xl">
-              <UtensilsCrossed className="w-16 h-16 text-charcoal" />
+  // Header Component
+  const renderHeader = () => (
+    <header className="bg-burgundy text-white shadow-lg sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          {/* Hamburger Menu */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-burgundy/80 p-2"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            {showMobileMenu ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+          </Button>
+          
+          {/* Logo */}
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
+              alt="Mezbaan-e-Khaas" 
+              className="w-10 h-10 rounded-full object-cover bg-white p-1"
+            />
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold">Mezbaan-e-Khaas</h1>
+              <p className="text-xs text-beige">Your Special Mezbaan — Hospitality with Heart.</p>
             </div>
           </div>
-          <CardTitle className="text-5xl font-bold text-charcoal tracking-wider">
-            Mezbaan-e-khaas
-          </CardTitle>
-          <CardDescription className="text-lg text-warmGray">
-            Where hospitality meets excellence
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-6 p-8">
-          <Card className="bg-gradient-to-br from-gold/10 to-gold/5 border-gold/30 hover:shadow-xl transition-all cursor-pointer group"
-                onClick={() => setCurrentPage('customer-login')}>
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="bg-gold/20 p-4 rounded-full group-hover:scale-110 transition-transform">
-                  <User className="w-12 h-12 text-gold" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl text-charcoal">Customer</CardTitle>
-              <CardDescription>Browse menu and place orders</CardDescription>
-            </CardHeader>
-          </Card>
+        </div>
 
-          <Card className="bg-gradient-to-br from-charcoal/10 to-charcoal/5 border-charcoal/30 hover:shadow-xl transition-all cursor-pointer group"
-                onClick={() => setCurrentPage('staff-login')}>
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="bg-charcoal/20 p-4 rounded-full group-hover:scale-110 transition-transform">
-                  <ChefHat className="w-12 h-12 text-charcoal" />
+        {/* Right side buttons */}
+        <div className="flex items-center gap-2">
+          {user && user.role === 'customer' && (
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:bg-burgundy/80"
+                onClick={goToCart}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cart.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-terracotta text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                    {cart.length}
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
+          {user && (
+            <Button 
+              onClick={handleLogout} 
+              variant="ghost" 
+              size="sm" 
+              className="text-white hover:bg-burgundy/80 hidden sm:flex"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Logout
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {showMobileMenu && (
+        <div className="absolute top-full left-0 w-full bg-charcoal text-white shadow-xl animate-slideIn">
+          <nav className="container mx-auto px-4 py-6 space-y-3">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-lg hover:bg-burgundy/20"
+              onClick={() => { setCurrentPage('home'); setShowMobileMenu(false); }}
+            >
+              <HomeIcon className="w-5 h-5 mr-3" />
+              Home
+            </Button>
+            
+            {user?.role === 'customer' && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
+                >
+                  <UtensilsCrossed className="w-5 h-5 mr-3" />
+                  Menu
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
+                >
+                  <ListOrdered className="w-5 h-5 mr-3" />
+                  My Orders
+                </Button>
+              </>
+            )}
+
+            {user?.role === 'staff' && (
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-lg hover:bg-burgundy/20"
+                onClick={() => { setCurrentPage('staff-dashboard'); setShowMobileMenu(false); }}
+              >
+                <ChefHat className="w-5 h-5 mr-3" />
+                Staff Dashboard
+              </Button>
+            )}
+
+            {!user ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('customer-login'); setShowMobileMenu(false); }}
+                >
+                  <User className="w-5 h-5 mr-3" />
+                  Customer Login
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('staff-login'); setShowMobileMenu(false); }}
+                >
+                  <ChefHat className="w-5 h-5 mr-3" />
+                  Staff Login
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-lg hover:bg-burgundy/20 text-red-400"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                Logout
+              </Button>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+
+  // Order Type Modal
+  const renderOrderTypeModal = () => {
+    if (!showOrderTypeModal) return null
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <Card className="w-full max-w-md bg-white">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Select Order Type</CardTitle>
+            <CardDescription className="text-center">Choose how you'd like to receive your order</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Button
+              onClick={() => handleOrderTypeSelect('dine')}
+              className="h-24 bg-gradient-to-br from-burgundy to-burgundy/80 hover:from-burgundy/90 hover:to-burgundy/70 text-white flex flex-col gap-2"
+            >
+              <Store className="w-10 h-10" />
+              <span className="text-lg font-semibold">Dine-In</span>
+              <span className="text-xs opacity-90">Pay at table</span>
+            </Button>
+            <Button
+              onClick={() => handleOrderTypeSelect('delivery')}
+              className="h-24 bg-gradient-to-br from-terracotta to-terracotta/80 hover:from-terracotta/90 hover:to-terracotta/70 text-white flex flex-col gap-2"
+            >
+              <Bike className="w-10 h-10" />
+              <span className="text-lg font-semibold">Delivery</span>
+              <span className="text-xs opacity-90">Cash on delivery</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowOrderTypeModal(false)}
+              className="mt-2"
+            >
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Home/Landing Page with Menu
+  const renderHome = () => {
+    const categories = [...new Set(menuItems.map(item => item.category))]
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+        {renderHeader()}
+
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-burgundy to-burgundy/90 text-white py-16 px-4">
+          <div className="container mx-auto text-center">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
+              alt="Mezbaan-e-Khaas" 
+              className="w-32 h-32 mx-auto mb-6 rounded-full object-cover bg-white p-2 shadow-2xl"
+            />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Mezbaan-e-Khaas</h1>
+            <p className="text-xl md:text-2xl text-beige mb-6">Your Special Mezbaan — Hospitality with Heart.</p>
+            <p className="text-lg opacity-90 max-w-2xl mx-auto">
+              Experience authentic flavors and warm hospitality. Browse our menu and place your order today!
+            </p>
+          </div>
+        </section>
+
+        {/* Menu Section */}
+        <section className="container mx-auto px-4 py-12">
+          <h2 className="text-3xl font-bold text-center text-charcoal mb-8">Our Menu</h2>
+          
+          {categories.map(category => {
+            const categoryItems = menuItems.filter(item => item.category === category && item.isAvailable)
+            if (categoryItems.length === 0) return null
+
+            return (
+              <div key={category} className="mb-12">
+                <h3 className="text-2xl font-bold text-burgundy mb-6 border-b-2 border-terracotta pb-2">{category}</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categoryItems.map(item => (
+                    <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all border-burgundy/20 group">
+                      {item.imageUrl && (
+                        <div className="h-48 overflow-hidden bg-gray-100">
+                          <img 
+                            src={item.imageUrl} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <CardTitle className="text-charcoal">{item.name}</CardTitle>
+                        <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="flex justify-between items-center">
+                        <span className="text-2xl font-bold text-burgundy">₹{item.price}</span>
+                        <Button 
+                          onClick={() => addToCart(item)} 
+                          className="bg-terracotta hover:bg-terracotta/90 text-white"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
               </div>
-              <CardTitle className="text-2xl text-charcoal">Staff</CardTitle>
-              <CardDescription>Manage orders and menu</CardDescription>
-            </CardHeader>
-          </Card>
-        </CardContent>
-      </Card>
-    </div>
-  )
+            )
+          })}
+        </section>
+
+        {/* Floating Cart Button */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-6 right-6 z-40 animate-fadeIn">
+            <Button
+              onClick={goToCart}
+              size="lg"
+              className="bg-burgundy hover:bg-burgundy/90 text-white shadow-2xl rounded-full px-6 py-6"
+            >
+              <ShoppingCart className="w-6 h-6 mr-2" />
+              View Cart ({cart.length})
+            </Button>
+          </div>
+        )}
+
+        {renderOrderTypeModal()}
+      </div>
+    )
+  }
 
   // Auth Page (Login/Signup)
   const renderAuth = () => {
     const isLogin = currentPage.includes('login')
-    const isCustomer = currentPage.includes('customer')
-    const role = isCustomer ? 'Customer' : 'Staff'
+    const isStaff = currentPage.includes('staff')
+    const role = isStaff ? 'staff' : 'customer'
+    const roleLabel = isStaff ? 'Staff' : 'Customer'
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-charcoal via-warmGray to-charcoal flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-cream/95 backdrop-blur border-gold/20">
-          <CardHeader>
-            <Button variant="ghost" onClick={() => setCurrentPage('landing')} className="mb-4 text-charcoal">
-              ← Back
-            </Button>
-            <div className="flex justify-center mb-4">
-              <div className="bg-gold p-4 rounded-full">
-                {isCustomer ? <User className="w-10 h-10 text-charcoal" /> : <ChefHat className="w-10 h-10 text-charcoal" />}
+      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+        {renderHeader()}
+        
+        <div className="flex items-center justify-center p-4 py-12">
+          <Card className="w-full max-w-md bg-white border-burgundy/20 shadow-xl">
+            <CardHeader>
+              <div className="flex justify-center mb-4">
+                <div className="bg-burgundy p-4 rounded-full">
+                  {isStaff ? <ChefHat className="w-10 h-10 text-white" /> : <User className="w-10 h-10 text-white" />}
+                </div>
               </div>
-            </div>
-            <CardTitle className="text-3xl text-center text-charcoal">
-              {role} {isLogin ? 'Login' : 'Signup'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {authError && (
-              <Alert variant="destructive">
-                <AlertDescription>{authError}</AlertDescription>
-              </Alert>
-            )}
+              <CardTitle className="text-3xl text-center text-charcoal">
+                {roleLabel} {isLogin ? 'Login' : 'Signup'}
+              </CardTitle>
+              <CardDescription className="text-center">
+                {isLogin ? 'Welcome back!' : 'Create your account'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {authError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{authError}</AlertDescription>
+                </Alert>
+              )}
 
-            {!isLogin && (
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    placeholder="Enter your full name"
+                    value={authForm.fullName}
+                    onChange={(e) => setAuthForm({ ...authForm, fullName: e.target.value })}
+                    className="bg-white border-burgundy/30"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="fullName"
-                  placeholder="Enter your full name"
-                  value={authForm.fullName}
-                  onChange={(e) => setAuthForm({ ...authForm, fullName: e.target.value })}
-                  className="bg-white border-gold/30"
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={authForm.email}
+                  onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                  className="bg-white border-burgundy/30"
                 />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={authForm.email}
-                onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                className="bg-white border-gold/30"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={authForm.password}
+                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                    className="bg-white border-burgundy/30 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warmGray hover:text-charcoal"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={authForm.password}
-                  onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                  className="bg-white border-gold/30 pr-10"
-                />
+              <Button
+                onClick={() => handleAuth(isLogin ? 'login' : 'signup', role)}
+                disabled={isLoading}
+                className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-semibold"
+              >
+                {isLoading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+              </Button>
+
+              <div className="text-center text-sm text-warmGray">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-warmGray hover:text-charcoal"
+                  onClick={() => setCurrentPage(isLogin ? currentPage.replace('login', 'signup') : currentPage.replace('signup', 'login'))}
+                  className="text-burgundy hover:underline font-semibold"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {isLogin ? 'Sign up' : 'Login'}
                 </button>
               </div>
-            </div>
-
-            {!isLogin && !isCustomer && (
-              <div className="space-y-2">
-                <Label htmlFor="staffCode">Staff Access Code</Label>
-                <Input
-                  id="staffCode"
-                  placeholder="Enter staff code"
-                  value={authForm.staffCode}
-                  onChange={(e) => setAuthForm({ ...authForm, staffCode: e.target.value })}
-                  className="bg-white border-gold/30"
-                />
-                <p className="text-xs text-warmGray">Contact admin for staff access code</p>
-              </div>
-            )}
-
-            <Button
-              onClick={() => handleAuth(isLogin ? 'login' : 'signup')}
-              disabled={isLoading}
-              className="w-full bg-gold hover:bg-gold/90 text-charcoal font-semibold"
-            >
-              {isLoading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
-            </Button>
-
-            <div className="text-center text-sm text-warmGray">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button
-                onClick={() => setCurrentPage(isLogin ? currentPage.replace('login', 'signup') : currentPage.replace('signup', 'login'))}
-                className="text-gold hover:underline font-semibold"
-              >
-                {isLogin ? 'Sign up' : 'Login'}
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -566,44 +795,48 @@ export default function App() {
     const categories = [...new Set(menuItems.map(item => item.category))]
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
-        {/* Header */}
-        <header className="bg-charcoal text-cream shadow-lg sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="bg-gold p-2 rounded-full">
-                <UtensilsCrossed className="w-6 h-6 text-charcoal" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">Mezbaan-e-khaas</h1>
-                <p className="text-xs text-gold">Welcome, {user?.fullName}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <ShoppingCart className="w-6 h-6" />
-                {cart.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-gold text-charcoal rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                    {cart.length}
-                  </span>
-                )}
-              </div>
-              <Button onClick={handleLogout} variant="ghost" size="sm" className="text-cream hover:text-gold">
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+        {renderHeader()}
 
         <div className="container mx-auto px-4 py-8">
+          {/* Order Type Selector */}
+          <Card className="mb-6 border-burgundy/20">
+            <CardContent className="pt-6">
+              <Label className="text-lg font-semibold mb-3 block">Order Type</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  onClick={() => setOrderType('dine')}
+                  variant={orderType === 'dine' ? 'default' : 'outline'}
+                  className={`h-20 ${orderType === 'dine' ? 'bg-burgundy hover:bg-burgundy/90 text-white' : 'border-burgundy/30'}`}
+                >
+                  <Store className="w-6 h-6 mr-2" />
+                  <div>
+                    <div className="font-semibold">Dine-In</div>
+                    <div className="text-xs opacity-80">Pay at table</div>
+                  </div>
+                </Button>
+                <Button
+                  onClick={() => setOrderType('delivery')}
+                  variant={orderType === 'delivery' ? 'default' : 'outline'}
+                  className={`h-20 ${orderType === 'delivery' ? 'bg-terracotta hover:bg-terracotta/90 text-white' : 'border-burgundy/30'}`}
+                >
+                  <Bike className="w-6 h-6 mr-2" />
+                  <div>
+                    <div className="font-semibold">Delivery</div>
+                    <div className="text-xs opacity-80">Cash on delivery</div>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Tabs defaultValue="menu" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8 bg-charcoal/10">
-              <TabsTrigger value="menu" className="data-[state=active]:bg-gold data-[state=active]:text-charcoal">Menu</TabsTrigger>
-              <TabsTrigger value="cart" className="data-[state=active]:bg-gold data-[state=active]:text-charcoal">
+            <TabsList className="grid w-full grid-cols-3 mb-8 bg-burgundy/10">
+              <TabsTrigger value="menu" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Menu</TabsTrigger>
+              <TabsTrigger value="cart" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
                 Cart ({cart.length})
               </TabsTrigger>
-              <TabsTrigger value="orders" className="data-[state=active]:bg-gold data-[state=active]:text-charcoal">My Orders</TabsTrigger>
+              <TabsTrigger value="orders" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">My Orders</TabsTrigger>
             </TabsList>
 
             {/* Menu Tab */}
@@ -614,10 +847,10 @@ export default function App() {
 
                 return (
                   <div key={category}>
-                    <h2 className="text-2xl font-bold text-charcoal mb-4 border-b-2 border-gold pb-2">{category}</h2>
+                    <h2 className="text-2xl font-bold text-burgundy mb-4 border-b-2 border-terracotta pb-2">{category}</h2>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryItems.map(item => (
-                        <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-shadow border-gold/20">
+                        <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-shadow border-burgundy/20">
                           {item.imageUrl && (
                             <div className="h-48 overflow-hidden bg-warmGray/10">
                               <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -628,8 +861,8 @@ export default function App() {
                             <CardDescription className="line-clamp-2">{item.description}</CardDescription>
                           </CardHeader>
                           <CardFooter className="flex justify-between items-center">
-                            <span className="text-2xl font-bold text-gold">₹{item.price}</span>
-                            <Button onClick={() => addToCart(item)} className="bg-gold hover:bg-gold/90 text-charcoal">
+                            <span className="text-2xl font-bold text-burgundy">₹{item.price}</span>
+                            <Button onClick={() => addToCart(item)} className="bg-terracotta hover:bg-terracotta/90 text-white">
                               <Plus className="w-4 h-4 mr-2" />
                               Add
                             </Button>
@@ -644,21 +877,9 @@ export default function App() {
 
             {/* Cart Tab */}
             <TabsContent value="cart" className="space-y-6">
-              <Card className="border-gold/20">
+              <Card className="border-burgundy/20">
                 <CardHeader>
                   <CardTitle className="text-charcoal">Your Cart</CardTitle>
-                  <div className="space-y-2 mt-4">
-                    <Label>Order Type</Label>
-                    <Select value={orderType} onValueChange={setOrderType}>
-                      <SelectTrigger className="bg-white border-gold/30">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dine">Dine-in (Pay at table)</SelectItem>
-                        <SelectItem value="parcel">Parcel (Cash on delivery)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {cart.length === 0 ? (
@@ -666,17 +887,17 @@ export default function App() {
                   ) : (
                     <>
                       {cart.map(item => (
-                        <div key={item.id} className="flex items-center gap-4 p-4 bg-cream/50 rounded-lg border border-gold/20">
+                        <div key={item.id} className="flex items-center gap-4 p-4 bg-beige/30 rounded-lg border border-burgundy/20">
                           <div className="flex-1">
                             <h3 className="font-semibold text-charcoal">{item.name}</h3>
                             <p className="text-sm text-warmGray">₹{item.price} each</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, -1)} className="border-gold/30">
+                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, -1)} className="border-burgundy/30">
                               <Minus className="w-4 h-4" />
                             </Button>
                             <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, 1)} className="border-gold/30">
+                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, 1)} className="border-burgundy/30">
                               <Plus className="w-4 h-4" />
                             </Button>
                           </div>
@@ -689,12 +910,12 @@ export default function App() {
                         </div>
                       ))}
 
-                      <div className="border-t-2 border-gold pt-4 mt-4">
+                      <div className="border-t-2 border-burgundy pt-4 mt-4">
                         <div className="flex justify-between items-center mb-4">
                           <span className="text-xl font-bold text-charcoal">Total:</span>
-                          <span className="text-2xl font-bold text-gold">₹{getCartTotal().toFixed(2)}</span>
+                          <span className="text-2xl font-bold text-burgundy">₹{getCartTotal().toFixed(2)}</span>
                         </div>
-                        <Button onClick={placeOrder} disabled={isLoading} className="w-full bg-gold hover:bg-gold/90 text-charcoal font-semibold text-lg py-6">
+                        <Button onClick={placeOrder} disabled={isLoading} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-semibold text-lg py-6">
                           {isLoading ? 'Placing order...' : 'Place Order'}
                         </Button>
                       </div>
@@ -707,14 +928,14 @@ export default function App() {
             {/* Orders Tab */}
             <TabsContent value="orders" className="space-y-6">
               {orders.length === 0 ? (
-                <Card className="border-gold/20">
+                <Card className="border-burgundy/20">
                   <CardContent className="py-12">
                     <p className="text-center text-warmGray">No orders yet</p>
                   </CardContent>
                 </Card>
               ) : (
                 orders.map(order => (
-                  <Card key={order.id} className="border-gold/20">
+                  <Card key={order.id} className="border-burgundy/20">
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>
@@ -731,13 +952,13 @@ export default function App() {
                     <CardContent className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-warmGray">Type:</span>
-                        <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Parcel'}</span>
+                        <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Delivery'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-warmGray">Payment:</span>
                         <span className="font-semibold text-charcoal">{order.paymentMethod === 'dine' ? 'Pay at table' : 'Cash on delivery'}</span>
                       </div>
-                      <div className="border-t border-gold/20 pt-2 mt-2">
+                      <div className="border-t border-burgundy/20 pt-2 mt-2">
                         <h4 className="font-semibold text-charcoal mb-2">Items:</h4>
                         {order.order_items?.map(item => (
                           <div key={item.id} className="flex justify-between text-sm py-1">
@@ -746,18 +967,10 @@ export default function App() {
                           </div>
                         ))}
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t-2 border-gold">
+                      <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
                         <span className="font-bold text-charcoal">Total:</span>
-                        <span className="text-xl font-bold text-gold">₹{order.totalAmount}</span>
+                        <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
                       </div>
-                      {order.status === 'pending' && (
-                        <Alert className="bg-yellow-50 border-yellow-300 mt-4">
-                          <Clock className="h-4 w-4 text-yellow-600" />
-                          <AlertDescription className="text-yellow-800">
-                            Waiting for staff to accept your order
-                          </AlertDescription>
-                        </Alert>
-                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -765,6 +978,20 @@ export default function App() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Floating Cart Button */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-6 right-6 z-40 animate-fadeIn">
+            <Button
+              onClick={goToCart}
+              size="lg"
+              className="bg-burgundy hover:bg-burgundy/90 text-white shadow-2xl rounded-full px-6 py-6"
+            >
+              <ShoppingCart className="w-6 h-6 mr-2" />
+              View Cart ({cart.length})
+            </Button>
+          </div>
+        )}
       </div>
     )
   }
@@ -776,33 +1003,16 @@ export default function App() {
     const completedOrders = allOrders.filter(o => ['ready', 'completed', 'rejected'].includes(o.status))
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-charcoal via-warmGray to-charcoal">
-        {/* Header */}
-        <header className="bg-charcoal text-cream shadow-lg sticky top-0 z-50 border-b-2 border-gold">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="bg-gold p-2 rounded-full">
-                <ChefHat className="w-6 h-6 text-charcoal" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">Staff Dashboard</h1>
-                <p className="text-xs text-gold">{user?.fullName}</p>
-              </div>
-            </div>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="border-gold text-gold hover:bg-gold hover:text-charcoal">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gradient-to-br from-charcoal via-warmGray/20 to-charcoal">
+        {renderHeader()}
 
         <div className="container mx-auto px-4 py-8">
           <Tabs defaultValue="orders" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-cream/10">
-              <TabsTrigger value="orders" className="data-[state=active]:bg-gold data-[state=active]:text-charcoal">
+            <TabsList className="grid w-full grid-cols-2 mb-8 bg-beige/10">
+              <TabsTrigger value="orders" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
                 Orders Management {pendingOrders.length > 0 && `(${pendingOrders.length} pending)`}
               </TabsTrigger>
-              <TabsTrigger value="menu" className="data-[state=active]:bg-gold data-[state=active]:text-charcoal">Menu Management</TabsTrigger>
+              <TabsTrigger value="menu" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Menu Management</TabsTrigger>
             </TabsList>
 
             {/* Orders Management Tab */}
@@ -810,13 +1020,13 @@ export default function App() {
               {/* Pending Orders */}
               {pendingOrders.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-cream mb-4 flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
                     <Clock className="w-6 h-6 text-yellow-500" />
                     Pending Orders ({pendingOrders.length})
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4">
                     {pendingOrders.map(order => (
-                      <Card key={order.id} className="bg-cream border-yellow-500 border-2">
+                      <Card key={order.id} className="bg-beige border-yellow-500 border-2">
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div>
@@ -828,7 +1038,7 @@ export default function App() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="space-y-1">
-                            <p className="text-sm text-warmGray">Type: <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Parcel'}</span></p>
+                            <p className="text-sm text-warmGray">Type: <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Delivery'}</span></p>
                             <p className="text-sm text-warmGray">Payment: <span className="font-semibold text-charcoal">{order.paymentMethod === 'dine' ? 'Pay at table' : 'Cash on delivery'}</span></p>
                           </div>
                           <div className="border-t border-warmGray/20 pt-2">
@@ -840,9 +1050,9 @@ export default function App() {
                               </div>
                             ))}
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t-2 border-gold">
+                          <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
                             <span className="font-bold">Total:</span>
-                            <span className="text-xl font-bold text-gold">₹{order.totalAmount}</span>
+                            <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
                           </div>
                           <div className="flex gap-2 pt-2">
                             <Button onClick={() => updateOrderStatus(order.id, 'accepted')} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
@@ -864,10 +1074,10 @@ export default function App() {
               {/* Active Orders */}
               {activeOrders.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-cream mb-4">Active Orders ({activeOrders.length})</h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">Active Orders ({activeOrders.length})</h2>
                   <div className="grid md:grid-cols-2 gap-4">
                     {activeOrders.map(order => (
-                      <Card key={order.id} className="bg-cream border-blue-500 border-2">
+                      <Card key={order.id} className="bg-beige border-blue-500 border-2">
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div>
@@ -881,7 +1091,7 @@ export default function App() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="space-y-1">
-                            <p className="text-sm text-warmGray">Type: <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Parcel'}</span></p>
+                            <p className="text-sm text-warmGray">Type: <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Delivery'}</span></p>
                           </div>
                           <div className="border-t border-warmGray/20 pt-2">
                             <h4 className="font-semibold text-charcoal mb-2">Items:</h4>
@@ -892,9 +1102,9 @@ export default function App() {
                               </div>
                             ))}
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t-2 border-gold">
+                          <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
                             <span className="font-bold">Total:</span>
-                            <span className="text-xl font-bold text-gold">₹{order.totalAmount}</span>
+                            <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
                           </div>
                           <div className="space-y-2 pt-2">
                             {order.status === 'accepted' && (
@@ -918,10 +1128,10 @@ export default function App() {
               {/* Completed Orders */}
               {completedOrders.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-cream mb-4">Recent Completed Orders</h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">Recent Completed Orders</h2>
                   <div className="grid md:grid-cols-3 gap-4">
                     {completedOrders.slice(0, 6).map(order => (
-                      <Card key={order.id} className="bg-cream/50">
+                      <Card key={order.id} className="bg-beige/50">
                         <CardHeader>
                           <CardTitle className="text-sm text-charcoal">Order #{order.id.slice(0, 8)}</CardTitle>
                           <Badge className={getStatusColor(order.status) + ' text-white w-fit'}>
@@ -929,7 +1139,7 @@ export default function App() {
                           </Badge>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-lg font-bold text-gold">₹{order.totalAmount}</p>
+                          <p className="text-lg font-bold text-burgundy">₹{order.totalAmount}</p>
                           <p className="text-xs text-warmGray mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                         </CardContent>
                       </Card>
@@ -942,7 +1152,7 @@ export default function App() {
             {/* Menu Management Tab */}
             <TabsContent value="menu" className="space-y-6">
               {/* Add/Edit Menu Item Form */}
-              <Card className="bg-cream border-gold/30">
+              <Card className="bg-beige border-burgundy/30">
                 <CardHeader>
                   <CardTitle className="text-charcoal">
                     {editingMenuItem ? 'Edit Menu Item' : 'Add New Menu Item'}
@@ -956,7 +1166,7 @@ export default function App() {
                         placeholder="Item name"
                         value={menuForm.name}
                         onChange={(e) => setMenuForm({ ...menuForm, name: e.target.value })}
-                        className="bg-white border-gold/30"
+                        className="bg-white border-burgundy/30"
                       />
                     </div>
                     <div className="space-y-2">
@@ -966,7 +1176,7 @@ export default function App() {
                         placeholder="0.00"
                         value={menuForm.price}
                         onChange={(e) => setMenuForm({ ...menuForm, price: e.target.value })}
-                        className="bg-white border-gold/30"
+                        className="bg-white border-burgundy/30"
                       />
                     </div>
                   </div>
@@ -977,7 +1187,7 @@ export default function App() {
                       placeholder="Item description"
                       value={menuForm.description}
                       onChange={(e) => setMenuForm({ ...menuForm, description: e.target.value })}
-                      className="bg-white border-gold/30"
+                      className="bg-white border-burgundy/30"
                     />
                   </div>
 
@@ -985,7 +1195,7 @@ export default function App() {
                     <div className="space-y-2">
                       <Label>Category *</Label>
                       <Select value={menuForm.category} onValueChange={(val) => setMenuForm({ ...menuForm, category: val })}>
-                        <SelectTrigger className="bg-white border-gold/30">
+                        <SelectTrigger className="bg-white border-burgundy/30">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1005,7 +1215,7 @@ export default function App() {
                           placeholder="https://example.com/image.jpg"
                           value={menuForm.imageUrl}
                           onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
-                          className="bg-white border-gold/30"
+                          className="bg-white border-burgundy/30"
                         />
                       </div>
                     </div>
@@ -1017,13 +1227,13 @@ export default function App() {
                       id="available"
                       checked={menuForm.isAvailable}
                       onChange={(e) => setMenuForm({ ...menuForm, isAvailable: e.target.checked })}
-                      className="w-4 h-4 text-gold border-gold/30 rounded focus:ring-gold"
+                      className="w-4 h-4 text-burgundy border-burgundy/30 rounded focus:ring-burgundy"
                     />
                     <Label htmlFor="available" className="cursor-pointer">Mark as available</Label>
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button onClick={saveMenuItem} disabled={isLoading} className="bg-gold hover:bg-gold/90 text-charcoal">
+                    <Button onClick={saveMenuItem} disabled={isLoading} className="bg-burgundy hover:bg-burgundy/90 text-white">
                       {isLoading ? 'Saving...' : (editingMenuItem ? 'Update Item' : 'Add Item')}
                     </Button>
                     {editingMenuItem && (
@@ -1037,7 +1247,7 @@ export default function App() {
                           imageUrl: '',
                           isAvailable: true
                         })
-                      }} variant="outline" className="border-gold text-charcoal">
+                      }} variant="outline" className="border-burgundy text-charcoal">
                         Cancel
                       </Button>
                     )}
@@ -1048,7 +1258,7 @@ export default function App() {
               {/* Menu Items List */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {menuItems.map(item => (
-                  <Card key={item.id} className="bg-cream border-gold/20">
+                  <Card key={item.id} className="bg-beige border-burgundy/20">
                     {item.imageUrl && (
                       <div className="h-32 overflow-hidden bg-warmGray/10">
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -1065,10 +1275,10 @@ export default function App() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-warmGray line-clamp-2 mb-2">{item.description}</p>
-                      <p className="text-xl font-bold text-gold">₹{item.price}</p>
+                      <p className="text-xl font-bold text-burgundy">₹{item.price}</p>
                     </CardContent>
                     <CardFooter className="flex gap-2">
-                      <Button onClick={() => startEditMenuItem(item)} size="sm" variant="outline" className="flex-1 border-gold/30">
+                      <Button onClick={() => startEditMenuItem(item)} size="sm" variant="outline" className="flex-1 border-burgundy/30">
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
@@ -1090,7 +1300,7 @@ export default function App() {
   // Main render
   return (
     <>
-      {currentPage === 'landing' && renderLanding()}
+      {currentPage === 'home' && renderHome()}
       {(currentPage.includes('login') || currentPage.includes('signup')) && renderAuth()}
       {currentPage === 'customer-dashboard' && renderCustomerDashboard()}
       {currentPage === 'staff-dashboard' && renderStaffDashboard()}
