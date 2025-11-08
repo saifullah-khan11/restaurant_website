@@ -1,0 +1,1310 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Eye, EyeOff, ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, XCircle, Edit, Upload, ChefHat, User, LogOut, Package, UtensilsCrossed, Menu as MenuIcon, X, Home as HomeIcon, ListOrdered, Store, Bike } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useToast } from '@/hooks/use-toast'
+import { Toaster } from '@/components/ui/toaster'
+
+export default function App() {
+  const [currentPage, setCurrentPage] = useState('home') // home, customer-login, customer-signup, staff-login, customer-dashboard, staff-dashboard
+  const [user, setUser] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const { toast } = useToast()
+
+  // Auth state
+  const [authForm, setAuthForm] = useState({
+    email: '',
+    password: '',
+    fullName: ''
+  })
+  const [authError, setAuthError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Menu state
+  const [menuItems, setMenuItems] = useState([])
+  const [cart, setCart] = useState([])
+  const [orderType, setOrderType] = useState('dine') // 'dine' or 'delivery'
+  const [showOrderTypeModal, setShowOrderTypeModal] = useState(false)
+
+  // Orders state
+  const [orders, setOrders] = useState([])
+  const [allOrders, setAllOrders] = useState([])
+
+  // Menu management state
+  const [menuForm, setMenuForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: 'Appetizer',
+    imageUrl: '',
+    isAvailable: true
+  })
+  const [editingMenuItem, setEditingMenuItem] = useState(null)
+
+  // Load menu items on mount
+  useEffect(() => {
+    fetchMenuItems()
+  }, [])
+
+  // Load orders when user changes
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'customer') {
+        fetchCustomerOrders()
+      } else if (user.role === 'staff') {
+        fetchAllOrders()
+      }
+    }
+  }, [user])
+
+  // Fetch menu items
+  const fetchMenuItems = async () => {
+    try {
+      const response = await fetch('/api/menu')
+      if (response.ok) {
+        const data = await response.json()
+        setMenuItems(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch menu:', error)
+    }
+  }
+
+  // Fetch customer orders
+  const fetchCustomerOrders = async () => {
+    if (!user) return
+    try {
+      const response = await fetch(`/api/orders?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setOrders(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+    }
+  }
+
+  // Fetch all orders (staff)
+  const fetchAllOrders = async () => {
+    try {
+      const response = await fetch('/api/orders')
+      if (response.ok) {
+        const data = await response.json()
+        setAllOrders(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+    }
+  }
+
+  // Handle authentication
+  const handleAuth = async (type, role) => {
+    setAuthError('')
+    setIsLoading(true)
+
+    // Validation
+    if (!authForm.email || !authForm.password) {
+      setAuthError('Please fill in all required fields')
+      setIsLoading(false)
+      return
+    }
+
+    if (type === 'signup' && !authForm.fullName) {
+      setAuthError('Please enter your full name')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/signup'
+      const body = {
+        email: authForm.email,
+        password: authForm.password,
+        role
+      }
+
+      if (type === 'signup') {
+        body.fullName = authForm.fullName
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setAuthError(data.error || 'Authentication failed')
+        setIsLoading(false)
+        return
+      }
+
+      // Success
+      setUser(data.user)
+      setCurrentPage(role === 'customer' ? 'customer-dashboard' : 'staff-dashboard')
+      setAuthForm({ email: '', password: '', fullName: '' })
+      setShowMobileMenu(false)
+      toast({
+        title: 'Success!',
+        description: `Welcome ${data.user.fullName}!`
+      })
+    } catch (error) {
+      setAuthError('An error occurred. Please try again.')
+      console.error('Auth error:', error)
+    }
+
+    setIsLoading(false)
+  }
+
+  // Add to cart with login check
+  const addToCart = (item) => {
+    if (!user) {
+      // Show order type modal first, then login
+      setShowOrderTypeModal(true)
+      return
+    }
+
+    const existingItem = cart.find(i => i.id === item.id)
+    if (existingItem) {
+      setCart(cart.map(i => 
+        i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+      ))
+    } else {
+      setCart([...cart, { ...item, quantity: 1 }])
+    }
+    toast({
+      title: 'Added to cart',
+      description: `${item.name} added to your cart`
+    })
+  }
+
+  // Handle order type selection and proceed to login
+  const handleOrderTypeSelect = (type) => {
+    setOrderType(type)
+    setShowOrderTypeModal(false)
+    setCurrentPage('customer-login')
+  }
+
+  // Update cart quantity
+  const updateCartQuantity = (itemId, change) => {
+    setCart(cart.map(item => {
+      if (item.id === itemId) {
+        const newQuantity = item.quantity + change
+        return newQuantity > 0 ? { ...item, quantity: newQuantity } : null
+      }
+      return item
+    }).filter(Boolean))
+  }
+
+  // Remove from cart
+  const removeFromCart = (itemId) => {
+    setCart(cart.filter(item => item.id !== itemId))
+  }
+
+  // Calculate cart total
+  const getCartTotal = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  }
+
+  // Place order
+  const placeOrder = async () => {
+    if (cart.length === 0) {
+      toast({
+        title: 'Cart is empty',
+        description: 'Please add items to your cart first',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const orderItems = cart.map(item => ({
+        menuItemId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }))
+
+      const response = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          orderType,
+          paymentMethod: orderType === 'dine' ? 'dine' : 'cod',
+          items: orderItems
+        })
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Order placed!',
+          description: 'Your order has been placed successfully'
+        })
+        setCart([])
+        fetchCustomerOrders()
+      } else {
+        toast({
+          title: 'Failed to place order',
+          description: 'Please try again',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Order error:', error)
+      toast({
+        title: 'Error',
+        description: 'An error occurred while placing your order',
+        variant: 'destructive'
+      })
+    }
+
+    setIsLoading(false)
+  }
+
+  // Update order status (staff)
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Order updated',
+          description: `Order status changed to ${newStatus}`
+        })
+        fetchAllOrders()
+      }
+    } catch (error) {
+      console.error('Failed to update order:', error)
+    }
+  }
+
+  // Create/Update menu item
+  const saveMenuItem = async () => {
+    if (!menuForm.name || !menuForm.price || !menuForm.category) {
+      toast({
+        title: 'Missing fields',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const url = editingMenuItem ? `/api/menu/${editingMenuItem.id}` : '/api/menu/create'
+      const method = editingMenuItem ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(menuForm)
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Success',
+          description: editingMenuItem ? 'Menu item updated' : 'Menu item created'
+        })
+        setMenuForm({
+          name: '',
+          description: '',
+          price: '',
+          category: 'Appetizer',
+          imageUrl: '',
+          isAvailable: true
+        })
+        setEditingMenuItem(null)
+        fetchMenuItems()
+      }
+    } catch (error) {
+      console.error('Failed to save menu item:', error)
+    }
+
+    setIsLoading(false)
+  }
+
+  // Delete menu item
+  const deleteMenuItem = async (id) => {
+    if (!confirm('Are you sure you want to delete this menu item?')) return
+
+    try {
+      const response = await fetch(`/api/menu/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Deleted',
+          description: 'Menu item deleted successfully'
+        })
+        fetchMenuItems()
+      }
+    } catch (error) {
+      console.error('Failed to delete menu item:', error)
+    }
+  }
+
+  // Start editing menu item
+  const startEditMenuItem = (item) => {
+    setEditingMenuItem(item)
+    setMenuForm({
+      name: item.name,
+      description: item.description || '',
+      price: item.price.toString(),
+      category: item.category,
+      imageUrl: item.imageUrl || '',
+      isAvailable: item.isAvailable
+    })
+  }
+
+  // Get status badge color
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-yellow-500',
+      accepted: 'bg-blue-500',
+      preparing: 'bg-purple-500',
+      ready: 'bg-green-500',
+      completed: 'bg-gray-500',
+      rejected: 'bg-red-500'
+    }
+    return colors[status] || 'bg-gray-500'
+  }
+
+  // Logout
+  const handleLogout = () => {
+    setUser(null)
+    setCart([])
+    setOrders([])
+    setAllOrders([])
+    setCurrentPage('home')
+    setShowMobileMenu(false)
+    toast({
+      title: 'Logged out',
+      description: 'You have been logged out successfully'
+    })
+  }
+
+  // Navigate to cart
+  const goToCart = () => {
+    if (!user) {
+      setShowOrderTypeModal(true)
+      return
+    }
+    setCurrentPage('customer-dashboard')
+    // Optionally scroll to cart section or switch tab
+  }
+
+  // ========== RENDER COMPONENTS ==========
+
+  // Header Component
+  const renderHeader = () => (
+    <header className="bg-burgundy text-white shadow-lg sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          {/* Hamburger Menu */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-burgundy/80 p-2"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            {showMobileMenu ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+          </Button>
+          
+          {/* Logo */}
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
+              alt="Mezbaan-e-Khaas" 
+              className="w-10 h-10 rounded-full object-cover bg-white p-1"
+            />
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold">Mezbaan-e-Khaas</h1>
+              <p className="text-xs text-beige">Your Special Mezbaan — Hospitality with Heart.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side buttons */}
+        <div className="flex items-center gap-2">
+          {user && user.role === 'customer' && (
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:bg-burgundy/80"
+                onClick={goToCart}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cart.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-terracotta text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                    {cart.length}
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
+          {user && (
+            <Button 
+              onClick={handleLogout} 
+              variant="ghost" 
+              size="sm" 
+              className="text-white hover:bg-burgundy/80 hidden sm:flex"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Logout
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {showMobileMenu && (
+        <div className="absolute top-full left-0 w-full bg-charcoal text-white shadow-xl animate-slideIn">
+          <nav className="container mx-auto px-4 py-6 space-y-3">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-lg hover:bg-burgundy/20"
+              onClick={() => { setCurrentPage('home'); setShowMobileMenu(false); }}
+            >
+              <HomeIcon className="w-5 h-5 mr-3" />
+              Home
+            </Button>
+            
+            {user?.role === 'customer' && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
+                >
+                  <UtensilsCrossed className="w-5 h-5 mr-3" />
+                  Menu
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
+                >
+                  <ListOrdered className="w-5 h-5 mr-3" />
+                  My Orders
+                </Button>
+              </>
+            )}
+
+            {user?.role === 'staff' && (
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-lg hover:bg-burgundy/20"
+                onClick={() => { setCurrentPage('staff-dashboard'); setShowMobileMenu(false); }}
+              >
+                <ChefHat className="w-5 h-5 mr-3" />
+                Staff Dashboard
+              </Button>
+            )}
+
+            {!user ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('customer-login'); setShowMobileMenu(false); }}
+                >
+                  <User className="w-5 h-5 mr-3" />
+                  Customer Login
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-burgundy/20"
+                  onClick={() => { setCurrentPage('staff-login'); setShowMobileMenu(false); }}
+                >
+                  <ChefHat className="w-5 h-5 mr-3" />
+                  Staff Login
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-lg hover:bg-burgundy/20 text-red-400"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                Logout
+              </Button>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+
+  // Order Type Modal
+  const renderOrderTypeModal = () => {
+    if (!showOrderTypeModal) return null
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <Card className="w-full max-w-md bg-white">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Select Order Type</CardTitle>
+            <CardDescription className="text-center">Choose how you'd like to receive your order</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Button
+              onClick={() => handleOrderTypeSelect('dine')}
+              className="h-24 bg-gradient-to-br from-burgundy to-burgundy/80 hover:from-burgundy/90 hover:to-burgundy/70 text-white flex flex-col gap-2"
+            >
+              <Store className="w-10 h-10" />
+              <span className="text-lg font-semibold">Dine-In</span>
+              <span className="text-xs opacity-90">Pay at table</span>
+            </Button>
+            <Button
+              onClick={() => handleOrderTypeSelect('delivery')}
+              className="h-24 bg-gradient-to-br from-terracotta to-terracotta/80 hover:from-terracotta/90 hover:to-terracotta/70 text-white flex flex-col gap-2"
+            >
+              <Bike className="w-10 h-10" />
+              <span className="text-lg font-semibold">Delivery</span>
+              <span className="text-xs opacity-90">Cash on delivery</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowOrderTypeModal(false)}
+              className="mt-2"
+            >
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Home/Landing Page with Menu
+  const renderHome = () => {
+    const categories = [...new Set(menuItems.map(item => item.category))]
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+        {renderHeader()}
+
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-burgundy to-burgundy/90 text-white py-16 px-4">
+          <div className="container mx-auto text-center">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
+              alt="Mezbaan-e-Khaas" 
+              className="w-32 h-32 mx-auto mb-6 rounded-full object-cover bg-white p-2 shadow-2xl"
+            />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Mezbaan-e-Khaas</h1>
+            <p className="text-xl md:text-2xl text-beige mb-6">Your Special Mezbaan — Hospitality with Heart.</p>
+            <p className="text-lg opacity-90 max-w-2xl mx-auto">
+              Experience authentic flavors and warm hospitality. Browse our menu and place your order today!
+            </p>
+          </div>
+        </section>
+
+        {/* Menu Section */}
+        <section className="container mx-auto px-4 py-12">
+          <h2 className="text-3xl font-bold text-center text-charcoal mb-8">Our Menu</h2>
+          
+          {categories.map(category => {
+            const categoryItems = menuItems.filter(item => item.category === category && item.isAvailable)
+            if (categoryItems.length === 0) return null
+
+            return (
+              <div key={category} className="mb-12">
+                <h3 className="text-2xl font-bold text-burgundy mb-6 border-b-2 border-terracotta pb-2">{category}</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categoryItems.map(item => (
+                    <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all border-burgundy/20 group">
+                      {item.imageUrl && (
+                        <div className="h-48 overflow-hidden bg-gray-100">
+                          <img 
+                            src={item.imageUrl} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <CardTitle className="text-charcoal">{item.name}</CardTitle>
+                        <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="flex justify-between items-center">
+                        <span className="text-2xl font-bold text-burgundy">₹{item.price}</span>
+                        <Button 
+                          onClick={() => addToCart(item)} 
+                          className="bg-terracotta hover:bg-terracotta/90 text-white"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </section>
+
+        {/* Floating Cart Button */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-6 right-6 z-40 animate-fadeIn">
+            <Button
+              onClick={goToCart}
+              size="lg"
+              className="bg-burgundy hover:bg-burgundy/90 text-white shadow-2xl rounded-full px-6 py-6"
+            >
+              <ShoppingCart className="w-6 h-6 mr-2" />
+              View Cart ({cart.length})
+            </Button>
+          </div>
+        )}
+
+        {renderOrderTypeModal()}
+      </div>
+    )
+  }
+
+  // Auth Page (Login/Signup)
+  const renderAuth = () => {
+    const isLogin = currentPage.includes('login')
+    const isStaff = currentPage.includes('staff')
+    const role = isStaff ? 'staff' : 'customer'
+    const roleLabel = isStaff ? 'Staff' : 'Customer'
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+        {renderHeader()}
+        
+        <div className="flex items-center justify-center p-4 py-12">
+          <Card className="w-full max-w-md bg-white border-burgundy/20 shadow-xl">
+            <CardHeader>
+              <div className="flex justify-center mb-4">
+                <div className="bg-burgundy p-4 rounded-full">
+                  {isStaff ? <ChefHat className="w-10 h-10 text-white" /> : <User className="w-10 h-10 text-white" />}
+                </div>
+              </div>
+              <CardTitle className="text-3xl text-center text-charcoal">
+                {roleLabel} {isLogin ? 'Login' : 'Signup'}
+              </CardTitle>
+              <CardDescription className="text-center">
+                {isLogin ? 'Welcome back!' : 'Create your account'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {authError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{authError}</AlertDescription>
+                </Alert>
+              )}
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    placeholder="Enter your full name"
+                    value={authForm.fullName}
+                    onChange={(e) => setAuthForm({ ...authForm, fullName: e.target.value })}
+                    className="bg-white border-burgundy/30"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={authForm.email}
+                  onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                  className="bg-white border-burgundy/30"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={authForm.password}
+                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                    className="bg-white border-burgundy/30 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-warmGray hover:text-charcoal"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => handleAuth(isLogin ? 'login' : 'signup', role)}
+                disabled={isLoading}
+                className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-semibold"
+              >
+                {isLoading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+              </Button>
+
+              <div className="text-center text-sm text-warmGray">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  onClick={() => setCurrentPage(isLogin ? currentPage.replace('login', 'signup') : currentPage.replace('signup', 'login'))}
+                  className="text-burgundy hover:underline font-semibold"
+                >
+                  {isLogin ? 'Sign up' : 'Login'}
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  // Customer Dashboard
+  const renderCustomerDashboard = () => {
+    const categories = [...new Set(menuItems.map(item => item.category))]
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-beige via-white to-beige">
+        {renderHeader()}
+
+        <div className="container mx-auto px-4 py-8">
+          {/* Order Type Selector */}
+          <Card className="mb-6 border-burgundy/20">
+            <CardContent className="pt-6">
+              <Label className="text-lg font-semibold mb-3 block">Order Type</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  onClick={() => setOrderType('dine')}
+                  variant={orderType === 'dine' ? 'default' : 'outline'}
+                  className={`h-20 ${orderType === 'dine' ? 'bg-burgundy hover:bg-burgundy/90 text-white' : 'border-burgundy/30'}`}
+                >
+                  <Store className="w-6 h-6 mr-2" />
+                  <div>
+                    <div className="font-semibold">Dine-In</div>
+                    <div className="text-xs opacity-80">Pay at table</div>
+                  </div>
+                </Button>
+                <Button
+                  onClick={() => setOrderType('delivery')}
+                  variant={orderType === 'delivery' ? 'default' : 'outline'}
+                  className={`h-20 ${orderType === 'delivery' ? 'bg-terracotta hover:bg-terracotta/90 text-white' : 'border-burgundy/30'}`}
+                >
+                  <Bike className="w-6 h-6 mr-2" />
+                  <div>
+                    <div className="font-semibold">Delivery</div>
+                    <div className="text-xs opacity-80">Cash on delivery</div>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Tabs defaultValue="menu" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8 bg-burgundy/10">
+              <TabsTrigger value="menu" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Menu</TabsTrigger>
+              <TabsTrigger value="cart" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
+                Cart ({cart.length})
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">My Orders</TabsTrigger>
+            </TabsList>
+
+            {/* Menu Tab */}
+            <TabsContent value="menu" className="space-y-6">
+              {categories.map(category => {
+                const categoryItems = menuItems.filter(item => item.category === category && item.isAvailable)
+                if (categoryItems.length === 0) return null
+
+                return (
+                  <div key={category}>
+                    <h2 className="text-2xl font-bold text-burgundy mb-4 border-b-2 border-terracotta pb-2">{category}</h2>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {categoryItems.map(item => (
+                        <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-shadow border-burgundy/20">
+                          {item.imageUrl && (
+                            <div className="h-48 overflow-hidden bg-warmGray/10">
+                              <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <CardHeader>
+                            <CardTitle className="text-charcoal">{item.name}</CardTitle>
+                            <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                          </CardHeader>
+                          <CardFooter className="flex justify-between items-center">
+                            <span className="text-2xl font-bold text-burgundy">₹{item.price}</span>
+                            <Button onClick={() => addToCart(item)} className="bg-terracotta hover:bg-terracotta/90 text-white">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </TabsContent>
+
+            {/* Cart Tab */}
+            <TabsContent value="cart" className="space-y-6">
+              <Card className="border-burgundy/20">
+                <CardHeader>
+                  <CardTitle className="text-charcoal">Your Cart</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {cart.length === 0 ? (
+                    <p className="text-center text-warmGray py-8">Your cart is empty</p>
+                  ) : (
+                    <>
+                      {cart.map(item => (
+                        <div key={item.id} className="flex items-center gap-4 p-4 bg-beige/30 rounded-lg border border-burgundy/20">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-charcoal">{item.name}</h3>
+                            <p className="text-sm text-warmGray">₹{item.price} each</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, -1)} className="border-burgundy/30">
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                            <Button size="sm" variant="outline" onClick={() => updateCartQuantity(item.id, 1)} className="border-burgundy/30">
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-charcoal">₹{(item.price * item.quantity).toFixed(2)}</p>
+                          </div>
+                          <Button size="sm" variant="ghost" onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      <div className="border-t-2 border-burgundy pt-4 mt-4">
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="text-xl font-bold text-charcoal">Total:</span>
+                          <span className="text-2xl font-bold text-burgundy">₹{getCartTotal().toFixed(2)}</span>
+                        </div>
+                        <Button onClick={placeOrder} disabled={isLoading} className="w-full bg-burgundy hover:bg-burgundy/90 text-white font-semibold text-lg py-6">
+                          {isLoading ? 'Placing order...' : 'Place Order'}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Orders Tab */}
+            <TabsContent value="orders" className="space-y-6">
+              {orders.length === 0 ? (
+                <Card className="border-burgundy/20">
+                  <CardContent className="py-12">
+                    <p className="text-center text-warmGray">No orders yet</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                orders.map(order => (
+                  <Card key={order.id} className="border-burgundy/20">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-charcoal">Order #{order.id.slice(0, 8)}</CardTitle>
+                          <CardDescription>
+                            {new Date(order.createdAt).toLocaleString()}
+                          </CardDescription>
+                        </div>
+                        <Badge className={`${getStatusColor(order.status)} text-white`}>
+                          {order.status.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-warmGray">Type:</span>
+                        <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Delivery'}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-warmGray">Payment:</span>
+                        <span className="font-semibold text-charcoal">{order.paymentMethod === 'dine' ? 'Pay at table' : 'Cash on delivery'}</span>
+                      </div>
+                      <div className="border-t border-burgundy/20 pt-2 mt-2">
+                        <h4 className="font-semibold text-charcoal mb-2">Items:</h4>
+                        {order.order_items?.map(item => (
+                          <div key={item.id} className="flex justify-between text-sm py-1">
+                            <span className="text-warmGray">{item.itemName} x{item.quantity}</span>
+                            <span className="text-charcoal">₹{(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
+                        <span className="font-bold text-charcoal">Total:</span>
+                        <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Floating Cart Button */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-6 right-6 z-40 animate-fadeIn">
+            <Button
+              onClick={goToCart}
+              size="lg"
+              className="bg-burgundy hover:bg-burgundy/90 text-white shadow-2xl rounded-full px-6 py-6"
+            >
+              <ShoppingCart className="w-6 h-6 mr-2" />
+              View Cart ({cart.length})
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Staff Dashboard
+  const renderStaffDashboard = () => {
+    const pendingOrders = allOrders.filter(o => o.status === 'pending')
+    const activeOrders = allOrders.filter(o => ['accepted', 'preparing'].includes(o.status))
+    const completedOrders = allOrders.filter(o => ['ready', 'completed', 'rejected'].includes(o.status))
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-charcoal via-warmGray/20 to-charcoal">
+        {renderHeader()}
+
+        <div className="container mx-auto px-4 py-8">
+          <Tabs defaultValue="orders" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8 bg-beige/10">
+              <TabsTrigger value="orders" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
+                Orders Management {pendingOrders.length > 0 && `(${pendingOrders.length} pending)`}
+              </TabsTrigger>
+              <TabsTrigger value="menu" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Menu Management</TabsTrigger>
+            </TabsList>
+
+            {/* Orders Management Tab */}
+            <TabsContent value="orders" className="space-y-8">
+              {/* Pending Orders */}
+              {pendingOrders.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                    <Clock className="w-6 h-6 text-yellow-500" />
+                    Pending Orders ({pendingOrders.length})
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {pendingOrders.map(order => (
+                      <Card key={order.id} className="bg-beige border-yellow-500 border-2">
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-charcoal">Order #{order.id.slice(0, 8)}</CardTitle>
+                              <CardDescription>{new Date(order.createdAt).toLocaleString()}</CardDescription>
+                            </div>
+                            <Badge className="bg-yellow-500 text-white">PENDING</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-1">
+                            <p className="text-sm text-warmGray">Type: <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Delivery'}</span></p>
+                            <p className="text-sm text-warmGray">Payment: <span className="font-semibold text-charcoal">{order.paymentMethod === 'dine' ? 'Pay at table' : 'Cash on delivery'}</span></p>
+                          </div>
+                          <div className="border-t border-warmGray/20 pt-2">
+                            <h4 className="font-semibold text-charcoal mb-2">Items:</h4>
+                            {order.order_items?.map(item => (
+                              <div key={item.id} className="flex justify-between text-sm py-1">
+                                <span>{item.itemName} x{item.quantity}</span>
+                                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
+                            <span className="font-bold">Total:</span>
+                            <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
+                          </div>
+                          <div className="flex gap-2 pt-2">
+                            <Button onClick={() => updateOrderStatus(order.id, 'accepted')} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Accept
+                            </Button>
+                            <Button onClick={() => updateOrderStatus(order.id, 'rejected')} className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Reject
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Active Orders */}
+              {activeOrders.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Active Orders ({activeOrders.length})</h2>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {activeOrders.map(order => (
+                      <Card key={order.id} className="bg-beige border-blue-500 border-2">
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-charcoal">Order #{order.id.slice(0, 8)}</CardTitle>
+                              <CardDescription>{new Date(order.createdAt).toLocaleString()}</CardDescription>
+                            </div>
+                            <Badge className={getStatusColor(order.status) + ' text-white'}>
+                              {order.status.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-1">
+                            <p className="text-sm text-warmGray">Type: <span className="font-semibold text-charcoal">{order.orderType === 'dine' ? 'Dine-in' : 'Delivery'}</span></p>
+                          </div>
+                          <div className="border-t border-warmGray/20 pt-2">
+                            <h4 className="font-semibold text-charcoal mb-2">Items:</h4>
+                            {order.order_items?.map(item => (
+                              <div key={item.id} className="flex justify-between text-sm py-1">
+                                <span>{item.itemName} x{item.quantity}</span>
+                                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center pt-2 border-t-2 border-burgundy">
+                            <span className="font-bold">Total:</span>
+                            <span className="text-xl font-bold text-burgundy">₹{order.totalAmount}</span>
+                          </div>
+                          <div className="space-y-2 pt-2">
+                            {order.status === 'accepted' && (
+                              <Button onClick={() => updateOrderStatus(order.id, 'preparing')} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                                Start Preparing
+                              </Button>
+                            )}
+                            {order.status === 'preparing' && (
+                              <Button onClick={() => updateOrderStatus(order.id, 'ready')} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                                Mark as Ready
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Completed Orders */}
+              {completedOrders.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Recent Completed Orders</h2>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {completedOrders.slice(0, 6).map(order => (
+                      <Card key={order.id} className="bg-beige/50">
+                        <CardHeader>
+                          <CardTitle className="text-sm text-charcoal">Order #{order.id.slice(0, 8)}</CardTitle>
+                          <Badge className={getStatusColor(order.status) + ' text-white w-fit'}>
+                            {order.status.toUpperCase()}
+                          </Badge>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-lg font-bold text-burgundy">₹{order.totalAmount}</p>
+                          <p className="text-xs text-warmGray mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Menu Management Tab */}
+            <TabsContent value="menu" className="space-y-6">
+              {/* Add/Edit Menu Item Form */}
+              <Card className="bg-beige border-burgundy/30">
+                <CardHeader>
+                  <CardTitle className="text-charcoal">
+                    {editingMenuItem ? 'Edit Menu Item' : 'Add New Menu Item'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Name *</Label>
+                      <Input
+                        placeholder="Item name"
+                        value={menuForm.name}
+                        onChange={(e) => setMenuForm({ ...menuForm, name: e.target.value })}
+                        className="bg-white border-burgundy/30"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Price (₹) *</Label>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={menuForm.price}
+                        onChange={(e) => setMenuForm({ ...menuForm, price: e.target.value })}
+                        className="bg-white border-burgundy/30"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      placeholder="Item description"
+                      value={menuForm.description}
+                      onChange={(e) => setMenuForm({ ...menuForm, description: e.target.value })}
+                      className="bg-white border-burgundy/30"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Category *</Label>
+                      <Select value={menuForm.category} onValueChange={(val) => setMenuForm({ ...menuForm, category: val })}>
+                        <SelectTrigger className="bg-white border-burgundy/30">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Appetizer">Appetizer</SelectItem>
+                          <SelectItem value="Main Course">Main Course</SelectItem>
+                          <SelectItem value="Dessert">Dessert</SelectItem>
+                          <SelectItem value="Beverage">Beverage</SelectItem>
+                          <SelectItem value="Snacks">Snacks</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Image URL</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://example.com/image.jpg"
+                          value={menuForm.imageUrl}
+                          onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
+                          className="bg-white border-burgundy/30"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="available"
+                      checked={menuForm.isAvailable}
+                      onChange={(e) => setMenuForm({ ...menuForm, isAvailable: e.target.checked })}
+                      className="w-4 h-4 text-burgundy border-burgundy/30 rounded focus:ring-burgundy"
+                    />
+                    <Label htmlFor="available" className="cursor-pointer">Mark as available</Label>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button onClick={saveMenuItem} disabled={isLoading} className="bg-burgundy hover:bg-burgundy/90 text-white">
+                      {isLoading ? 'Saving...' : (editingMenuItem ? 'Update Item' : 'Add Item')}
+                    </Button>
+                    {editingMenuItem && (
+                      <Button onClick={() => {
+                        setEditingMenuItem(null)
+                        setMenuForm({
+                          name: '',
+                          description: '',
+                          price: '',
+                          category: 'Appetizer',
+                          imageUrl: '',
+                          isAvailable: true
+                        })
+                      }} variant="outline" className="border-burgundy text-charcoal">
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Menu Items List */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {menuItems.map(item => (
+                  <Card key={item.id} className="bg-beige border-burgundy/20">
+                    {item.imageUrl && (
+                      <div className="h-32 overflow-hidden bg-warmGray/10">
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg text-charcoal">{item.name}</CardTitle>
+                        <Badge className={item.isAvailable ? 'bg-green-500' : 'bg-red-500'}>
+                          {item.isAvailable ? 'Available' : 'Unavailable'}
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-xs">{item.category}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-warmGray line-clamp-2 mb-2">{item.description}</p>
+                      <p className="text-xl font-bold text-burgundy">₹{item.price}</p>
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button onClick={() => startEditMenuItem(item)} size="sm" variant="outline" className="flex-1 border-burgundy/30">
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button onClick={() => deleteMenuItem(item.id)} size="sm" variant="destructive" className="flex-1">
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    )
+  }
+
+  // Main render
+  return (
+    <>
+      {currentPage === 'home' && renderHome()}
+      {(currentPage.includes('login') || currentPage.includes('signup')) && renderAuth()}
+      {currentPage === 'customer-dashboard' && renderCustomerDashboard()}
+      {currentPage === 'staff-dashboard' && renderStaffDashboard()}
+      <Toaster />
+    </>
+  )
+}
