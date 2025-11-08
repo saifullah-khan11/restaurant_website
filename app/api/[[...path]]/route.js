@@ -66,29 +66,7 @@ export async function POST(request) {
         )
       }
 
-      // If staff role, validate staff code
-      if (role === 'staff') {
-        if (!staffCode) {
-          return NextResponse.json(
-            { error: 'Staff code is required for staff registration' },
-            { status: 400 }
-          )
-        }
-
-        const { data: codeData, error: codeError } = await supabase
-          .from('staff_codes')
-          .select('*')
-          .eq('code', staffCode)
-          .eq('isUsed', false)
-          .single()
-
-        if (codeError || !codeData) {
-          return NextResponse.json(
-            { error: 'Invalid or already used staff code' },
-            { status: 400 }
-          )
-        }
-      }
+      // Staff signup - no code required (simplified)
 
       // Hash password
       const passwordHash = await bcrypt.hash(password, 10)
