@@ -572,7 +572,7 @@ export default function App() {
           <CardContent className="grid gap-4">
             <Button
               onClick={() => handleOrderTypeSelect('dine')}
-              className="h-24 bg-gradient-to-br from-burgundy to-burgundy/80 hover:from-burgundy/90 hover:to-burgundy/70 text-white flex flex-col gap-2"
+              className="h-24 bg-gradient-to-br from-brown to-brown/80 hover:from-brown/90 hover:to-brown/70 text-white flex flex-col gap-2"
             >
               <Store className="w-10 h-10" />
               <span className="text-lg font-semibold">Dine-In</span>
@@ -580,7 +580,7 @@ export default function App() {
             </Button>
             <Button
               onClick={() => handleOrderTypeSelect('delivery')}
-              className="h-24 bg-gradient-to-br from-terracotta to-terracotta/80 hover:from-terracotta/90 hover:to-terracotta/70 text-white flex flex-col gap-2"
+              className="h-24 bg-gradient-to-br from-lightBrown to-lightBrown/80 hover:from-lightBrown/90 hover:to-lightBrown/70 text-white flex flex-col gap-2"
             >
               <Bike className="w-10 h-10" />
               <span className="text-lg font-semibold">Delivery</span>
