@@ -1658,7 +1658,7 @@ export default function App() {
   return (
     <>
       {currentPage === 'home' && renderHome()}
-      {(currentPage.includes('login') || currentPage.includes('signup')) && renderAuth()}
+      {(currentPage === 'login' || currentPage === 'signup') && renderAuth()}
       {currentPage === 'customer-dashboard' && renderCustomerDashboard()}
       {currentPage === 'staff-dashboard' && renderStaffDashboard()}
       <Toaster />
