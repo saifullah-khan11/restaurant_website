@@ -2,6 +2,7 @@
 -- Database Schema for Supabase PostgreSQL
 
 -- Drop existing tables if recreating (for development only)
+DROP TABLE IF EXISTS reservations CASCADE;
 DROP TABLE IF EXISTS order_items CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS menu_items CASCADE;
