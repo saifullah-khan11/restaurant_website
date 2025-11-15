@@ -87,6 +87,7 @@ ALTER TABLE staff_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE menu_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS Policies for Public Access (for MVP - adjust for production)
 CREATE POLICY "Allow public read users" ON users FOR SELECT USING (true);
