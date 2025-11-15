@@ -377,7 +377,7 @@ export default function App() {
   const handleOrderTypeSelect = (type) => {
     setOrderType(type)
     setShowOrderTypeModal(false)
-    setCurrentPage('customer-login')
+    setCurrentPage('login')
   }
 
   // Update cart quantity
