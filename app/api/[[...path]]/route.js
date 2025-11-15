@@ -250,6 +250,41 @@ export async function POST(request) {
       return NextResponse.json({ success: true, order })
     }
 
+    // Create Reservation
+    if (path === '/api/reservations/create') {
+      const body = await request.json()
+      const { userId, reservationDate, reservationTime, numberOfPeople, specialRequests } = body
+
+      if (!userId || !reservationDate || !reservationTime || !numberOfPeople) {
+        return NextResponse.json(
+          { error: 'Missing required fields' },
+          { status: 400 }
+        )
+      }
+
+      const reservationId = uuidv4()
+      const { data, error } = await supabase
+        .from('reservations')
+        .insert([{
+          id: reservationId,
+          userId,
+          reservationDate,
+          reservationTime,
+          numberOfPeople: parseInt(numberOfPeople),
+          specialRequests: specialRequests || '',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        return handleError(error, 'Failed to create reservation')
+      }
+
+      return NextResponse.json({ success: true, data })
+    }
+
   } catch (error) {
     return handleError(error)
   }
