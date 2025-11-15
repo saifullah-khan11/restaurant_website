@@ -68,6 +68,19 @@ CREATE TABLE order_items (
   FOREIGN KEY ("menuItemId") REFERENCES menu_items(id)
 );
 
+-- Create Reservations Table
+CREATE TABLE reservations (
+  id TEXT PRIMARY KEY,
+  "userId" TEXT NOT NULL,
+  "reservationDate" DATE NOT NULL,
+  "reservationTime" TIME NOT NULL,
+  "numberOfPeople" INTEGER NOT NULL,
+  "specialRequests" TEXT,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')) DEFAULT 'pending',
+  "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  FOREIGN KEY ("userId") REFERENCES users(id)
+);
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staff_codes ENABLE ROW LEVEL SECURITY;
