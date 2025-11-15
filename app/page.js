@@ -1049,12 +1049,13 @@ export default function App() {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="menu" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8 bg-brown/10">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-brown/10">
               <TabsTrigger value="menu" className="data-[state=active]:bg-brown data-[state=active]:text-white">Menu</TabsTrigger>
               <TabsTrigger value="cart" className="data-[state=active]:bg-brown data-[state=active]:text-white">
                 Cart ({cart.length})
               </TabsTrigger>
+              <TabsTrigger value="reservations" className="data-[state=active]:bg-brown data-[state=active]:text-white">Reservations</TabsTrigger>
               <TabsTrigger value="orders" className="data-[state=active]:bg-brown data-[state=active]:text-white">My Orders</TabsTrigger>
             </TabsList>
 
