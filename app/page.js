@@ -1160,6 +1160,128 @@ export default function App() {
               </Card>
             </TabsContent>
 
+            {/* Reservations Tab */}
+            <TabsContent value="reservations" className="space-y-6">
+              {/* Create Reservation Form */}
+              <Card className="border-brown/20">
+                <CardHeader>
+                  <CardTitle className="text-charcoal flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    Reserve a Table
+                  </CardTitle>
+                  <CardDescription>Book your table in advance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Date</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={reservationForm.date}
+                        onChange={(e) => setReservationForm({ ...reservationForm, date: e.target.value })}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="bg-white border-brown/30"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="time">Time</Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={reservationForm.time}
+                        onChange={(e) => setReservationForm({ ...reservationForm, time: e.target.value })}
+                        className="bg-white border-brown/30"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="people">Number of People</Label>
+                    <Select value={reservationForm.numberOfPeople} onValueChange={(val) => setReservationForm({ ...reservationForm, numberOfPeople: val })}>
+                      <SelectTrigger className="bg-white border-brown/30">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                          <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Person' : 'People'}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="requests">Special Requests (Optional)</Label>
+                    <Textarea
+                      id="requests"
+                      placeholder="Any dietary requirements or special occasions?"
+                      value={reservationForm.specialRequests}
+                      onChange={(e) => setReservationForm({ ...reservationForm, specialRequests: e.target.value })}
+                      className="bg-white border-brown/30"
+                      rows={3}
+                    />
+                  </div>
+                  <Button onClick={createReservation} disabled={isLoading} className="w-full bg-brown hover:bg-brown/90 text-white font-semibold">
+                    {isLoading ? 'Creating...' : 'Reserve Table'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* My Reservations List */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-charcoal">My Reservations</h3>
+                {reservations.length === 0 ? (
+                  <Card className="border-brown/20">
+                    <CardContent className="py-12">
+                      <p className="text-center text-warmGray">No reservations yet</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  reservations.map(reservation => (
+                    <Card key={reservation.id} className="border-brown/20">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-charcoal flex items-center gap-2">
+                              <Calendar className="w-5 h-5" />
+                              {new Date(reservation.reservationDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            </CardTitle>
+                            <CardDescription className="flex items-center gap-2 mt-2">
+                              <Clock className="w-4 h-4" />
+                              {reservation.reservationTime}
+                            </CardDescription>
+                          </div>
+                          <Badge className={reservation.status === 'pending' ? 'bg-yellow-500' : 'bg-green-500'}>
+                            {reservation.status.toUpperCase()}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-warmGray" />
+                          <span className="text-charcoal">{reservation.numberOfPeople} {reservation.numberOfPeople === 1 ? 'Person' : 'People'}</span>
+                        </div>
+                        {reservation.specialRequests && (
+                          <div className="text-sm text-warmGray">
+                            <strong>Special Requests:</strong> {reservation.specialRequests}
+                          </div>
+                        )}
+                        <div className="pt-2">
+                          <Button
+                            onClick={() => deleteReservation(reservation.id)}
+                            variant="destructive"
+                            size="sm"
+                            className="w-full"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Cancel Reservation
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </TabsContent>
+
             {/* Orders Tab */}
             <TabsContent value="orders" className="space-y-6">
               {orders.length === 0 ? (
