@@ -249,8 +249,8 @@ export default function App() {
     }
   }
 
-  // Handle authentication
-  const handleAuth = async (type, role) => {
+  // Handle authentication - Merged login/signup
+  const handleAuth = async (type) => {
     setAuthError('')
     setIsLoading(true)
 
@@ -268,40 +268,81 @@ export default function App() {
     }
 
     try {
-      const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/signup'
-      const body = {
-        email: authForm.email,
-        password: authForm.password,
-        role
+      if (type === 'login') {
+        // Try customer login first
+        let response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authForm.email,
+            password: authForm.password,
+            role: 'customer'
+          })
+        })
+
+        let data = await response.json()
+
+        // If customer login fails, try staff login
+        if (!response.ok) {
+          response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: authForm.email,
+              password: authForm.password,
+              role: 'staff'
+            })
+          })
+
+          data = await response.json()
+        }
+
+        if (!response.ok) {
+          setAuthError(data.error || 'Invalid email or password')
+          setIsLoading(false)
+          return
+        }
+
+        // Success
+        setUser(data.user)
+        setCurrentPage(data.user.role === 'customer' ? 'customer-dashboard' : 'staff-dashboard')
+        setAuthForm({ email: '', password: '', fullName: '' })
+        setShowMobileMenu(false)
+        toast({
+          title: 'Success!',
+          description: `Welcome ${data.user.fullName}!`
+        })
+      } else {
+        // Signup - default to customer role
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authForm.email,
+            password: authForm.password,
+            fullName: authForm.fullName,
+            role: 'customer'
+          })
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          setAuthError(data.error || 'Signup failed')
+          setIsLoading(false)
+          return
+        }
+
+        // Success
+        setUser(data.user)
+        setCurrentPage('customer-dashboard')
+        setAuthForm({ email: '', password: '', fullName: '' })
+        setShowMobileMenu(false)
+        toast({
+          title: 'Success!',
+          description: `Welcome ${data.user.fullName}!`
+        })
       }
-
-      if (type === 'signup') {
-        body.fullName = authForm.fullName
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setAuthError(data.error || 'Authentication failed')
-        setIsLoading(false)
-        return
-      }
-
-      // Success
-      setUser(data.user)
-      setCurrentPage(role === 'customer' ? 'customer-dashboard' : 'staff-dashboard')
-      setAuthForm({ email: '', password: '', fullName: '' })
-      setShowMobileMenu(false)
-      toast({
-        title: 'Success!',
-        description: `Welcome ${data.user.fullName}!`
-      })
     } catch (error) {
       setAuthError('An error occurred. Please try again.')
       console.error('Auth error:', error)
