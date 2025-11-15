@@ -349,6 +349,29 @@ export async function GET(request) {
       return NextResponse.json(data || [])
     }
 
+    // Get reservations
+    if (path === '/api/reservations') {
+      const userId = url.searchParams.get('userId')
+
+      let query = supabase
+        .from('reservations')
+        .select('*')
+        .order('reservationDate', { ascending: true })
+        .order('reservationTime', { ascending: true })
+
+      if (userId) {
+        query = query.eq('userId', userId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        return handleError(error, 'Failed to fetch reservations')
+      }
+
+      return NextResponse.json(data || [])
+    }
+
     // Get single order
     if (path.startsWith('/api/orders/')) {
       const orderId = path.split('/').pop()
