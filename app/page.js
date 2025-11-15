@@ -909,12 +909,9 @@ export default function App() {
     )
   }
 
-  // Auth Page (Login/Signup)
+  // Auth Page (Merged Login/Signup)
   const renderAuth = () => {
-    const isLogin = currentPage.includes('login')
-    const isStaff = currentPage.includes('staff')
-    const role = isStaff ? 'staff' : 'customer'
-    const roleLabel = isStaff ? 'Staff' : 'Customer'
+    const isLogin = currentPage === 'login'
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-cream via-white to-cream">
@@ -925,14 +922,14 @@ export default function App() {
             <CardHeader>
               <div className="flex justify-center mb-4">
                 <div className="bg-brown p-4 rounded-full">
-                  {isStaff ? <ChefHat className="w-10 h-10 text-white" /> : <User className="w-10 h-10 text-white" />}
+                  <User className="w-10 h-10 text-white" />
                 </div>
               </div>
               <CardTitle className="text-3xl text-center text-charcoal">
-                {roleLabel} {isLogin ? 'Login' : 'Signup'}
+                {isLogin ? 'Login' : 'Sign Up'}
               </CardTitle>
               <CardDescription className="text-center">
-                {isLogin ? 'Welcome back!' : 'Create your account'}
+                {isLogin ? 'Welcome back! Please login to continue' : 'Create your account to get started'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -989,7 +986,7 @@ export default function App() {
               </div>
 
               <Button
-                onClick={() => handleAuth(isLogin ? 'login' : 'signup', role)}
+                onClick={() => handleAuth(isLogin ? 'login' : 'signup')}
                 disabled={isLoading}
                 className="w-full bg-brown hover:bg-brown/90 text-white font-semibold"
               >
@@ -999,7 +996,7 @@ export default function App() {
               <div className="text-center text-sm text-warmGray">
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
                 <button
-                  onClick={() => setCurrentPage(isLogin ? currentPage.replace('login', 'signup') : currentPage.replace('signup', 'login'))}
+                  onClick={() => setCurrentPage(isLogin ? 'signup' : 'login')}
                   className="text-brown hover:underline font-semibold"
                 >
                   {isLogin ? 'Sign up' : 'Login'}
