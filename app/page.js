@@ -1061,12 +1061,27 @@ export default function App() {
 
             {/* Menu Tab */}
             <TabsContent value="menu" className="space-y-6">
+              {/* Category Bar */}
+              <div className="flex justify-center mb-6 overflow-x-auto pb-2">
+                <div className="flex gap-3 px-4">
+                  {categories.map(category => (
+                    <Button
+                      key={category}
+                      onClick={() => scrollToCategory(category)}
+                      className="bg-lightBrown hover:bg-brown text-white whitespace-nowrap px-6 py-2 rounded-full shadow-md"
+                    >
+                      {category}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               {categories.map(category => {
                 const categoryItems = menuItems.filter(item => item.category === category && item.isAvailable)
                 if (categoryItems.length === 0) return null
 
                 return (
-                  <div key={category}>
+                  <div key={category} id={`category-${category}`} className="scroll-mt-24">
                     <h2 className="text-2xl font-bold text-brown mb-4 border-b-2 border-lightBrown pb-2">{category}</h2>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryItems.map(item => (
