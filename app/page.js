@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Eye, EyeOff, ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, XCircle, Edit, Upload, ChefHat, User, LogOut, Package, UtensilsCrossed, Menu as MenuIcon, X, Home as HomeIcon, ListOrdered, Store, Bike } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Eye, EyeOff, ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, XCircle, Edit, Upload, ChefHat, User, LogOut, Package, UtensilsCrossed, Menu as MenuIcon, X, Home as HomeIcon, ListOrdered, Store, Bike, Calendar, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -14,12 +14,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
 import { Toaster } from '@/components/ui/toaster'
 
+const SESSION_DURATION = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home') // home, customer-login, customer-signup, staff-login, customer-dashboard, staff-dashboard
+  const [currentPage, setCurrentPage] = useState('home') // home, login, signup, customer-dashboard, staff-dashboard
   const [user, setUser] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [currentTab, setCurrentTab] = useState('menu')
   const { toast } = useToast()
+  const menuSectionRef = useRef(null)
 
   // Auth state
   const [authForm, setAuthForm] = useState({
@@ -40,6 +44,15 @@ export default function App() {
   const [orders, setOrders] = useState([])
   const [allOrders, setAllOrders] = useState([])
 
+  // Reservation state
+  const [reservations, setReservations] = useState([])
+  const [reservationForm, setReservationForm] = useState({
+    date: '',
+    time: '',
+    numberOfPeople: '2',
+    specialRequests: ''
+  })
+
   // Menu management state
   const [menuForm, setMenuForm] = useState({
     name: '',
@@ -51,16 +64,53 @@ export default function App() {
   })
   const [editingMenuItem, setEditingMenuItem] = useState(null)
 
+  // Load session from localStorage on mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem('mezbaan_session')
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession)
+        const now = new Date().getTime()
+        if (session.expiresAt > now) {
+          setUser(session.user)
+          setCart(session.cart || [])
+          setOrderType(session.orderType || 'dine')
+          setCurrentPage(session.currentPage || (session.user.role === 'customer' ? 'customer-dashboard' : 'staff-dashboard'))
+        } else {
+          localStorage.removeItem('mezbaan_session')
+        }
+      } catch (error) {
+        console.error('Failed to restore session:', error)
+        localStorage.removeItem('mezbaan_session')
+      }
+    }
+  }, [])
+
+  // Save session to localStorage whenever user or cart changes
+  useEffect(() => {
+    if (user) {
+      const session = {
+        user,
+        cart,
+        orderType,
+        currentPage,
+        expiresAt: new Date().getTime() + SESSION_DURATION
+      }
+      localStorage.setItem('mezbaan_session', JSON.stringify(session))
+    }
+  }, [user, cart, orderType, currentPage])
+
   // Load menu items on mount
   useEffect(() => {
     fetchMenuItems()
   }, [])
 
-  // Load orders when user changes
+  // Load orders and reservations when user changes
   useEffect(() => {
     if (user) {
       if (user.role === 'customer') {
         fetchCustomerOrders()
+        fetchCustomerReservations()
       } else if (user.role === 'staff') {
         fetchAllOrders()
       }
