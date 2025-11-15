@@ -157,6 +157,98 @@ export default function App() {
     }
   }
 
+  // Fetch customer reservations
+  const fetchCustomerReservations = async () => {
+    if (!user) return
+    try {
+      const response = await fetch(`/api/reservations?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setReservations(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch reservations:', error)
+    }
+  }
+
+  // Create reservation
+  const createReservation = async () => {
+    if (!reservationForm.date || !reservationForm.time || !reservationForm.numberOfPeople) {
+      toast({
+        title: 'Missing fields',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/reservations/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          reservationDate: reservationForm.date,
+          reservationTime: reservationForm.time,
+          numberOfPeople: reservationForm.numberOfPeople,
+          specialRequests: reservationForm.specialRequests
+        })
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Reservation created!',
+          description: 'Your table has been reserved successfully'
+        })
+        setReservationForm({
+          date: '',
+          time: '',
+          numberOfPeople: '2',
+          specialRequests: ''
+        })
+        fetchCustomerReservations()
+      } else {
+        toast({
+          title: 'Failed to create reservation',
+          description: 'Please try again',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Reservation error:', error)
+      toast({
+        title: 'Error',
+        description: 'An error occurred while creating your reservation',
+        variant: 'destructive'
+      })
+    }
+
+    setIsLoading(false)
+  }
+
+  // Delete reservation
+  const deleteReservation = async (id) => {
+    if (!confirm('Are you sure you want to cancel this reservation?')) return
+
+    try {
+      const response = await fetch(`/api/reservations/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast({
+          title: 'Reservation cancelled',
+          description: 'Your reservation has been cancelled'
+        })
+        fetchCustomerReservations()
+      }
+    } catch (error) {
+      console.error('Failed to delete reservation:', error)
+    }
+  }
+
   // Handle authentication
   const handleAuth = async (type, role) => {
     setAuthError('')
