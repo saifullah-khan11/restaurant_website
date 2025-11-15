@@ -126,6 +126,9 @@ CREATE INDEX idx_orders_user ON orders("userId");
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_created ON orders("createdAt" DESC);
 CREATE INDEX idx_order_items_order ON order_items("orderId");
+CREATE INDEX idx_reservations_user ON reservations("userId");
+CREATE INDEX idx_reservations_date ON reservations("reservationDate");
+CREATE INDEX idx_reservations_status ON reservations(status);
 
 -- Auto-update timestamp trigger function
 CREATE OR REPLACE FUNCTION update_timestamp()
