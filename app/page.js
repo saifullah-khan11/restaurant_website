@@ -820,7 +820,7 @@ export default function App() {
             <img 
               src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
               alt="Mezbaan-e-Khaas" 
-              className="w-32 h-32 mx-auto mb-6 rounded-full object-cover bg-white p-2 shadow-2xl"
+              className="w-32 h-32 mx-auto mb-6 rounded-full object-cover border-4 border-cream shadow-2xl"
             />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Mezbaan-e-Khaas</h1>
             <p className="text-xl md:text-2xl text-cream mb-6">Your Special Mezbaan — Hospitality with Heart.</p>
@@ -832,14 +832,29 @@ export default function App() {
 
         {/* Menu Section */}
         <section className="container mx-auto px-4 py-12">
-          <h2 className="text-3xl font-bold text-center text-charcoal mb-8">Our Menu</h2>
+          <h2 className="text-3xl font-bold text-center text-charcoal mb-6">Our Menu</h2>
+          
+          {/* Category Bar */}
+          <div className="flex justify-center mb-8 overflow-x-auto pb-2">
+            <div className="flex gap-3 px-4">
+              {categories.map(category => (
+                <Button
+                  key={category}
+                  onClick={() => scrollToCategory(category)}
+                  className="bg-lightBrown hover:bg-brown text-white whitespace-nowrap px-6 py-2 rounded-full shadow-md"
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
           
           {categories.map(category => {
             const categoryItems = menuItems.filter(item => item.category === category && item.isAvailable)
             if (categoryItems.length === 0) return null
 
             return (
-              <div key={category} className="mb-12">
+              <div key={category} id={`category-${category}`} className="mb-12 scroll-mt-24">
                 <h3 className="text-2xl font-bold text-brown mb-6 border-b-2 border-lightBrown pb-2">{category}</h3>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {categoryItems.map(item => (
