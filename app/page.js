@@ -614,22 +614,22 @@ export default function App() {
     <header className="bg-brown text-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          {/* Hamburger Menu */}
+          {/* Hamburger Menu with proper color */}
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-white hover:bg-brown/80 p-2"
+            className="text-white hover:bg-lightBrown bg-lightBrown/80 p-2"
             onClick={() => setShowMobileMenu(!showMobileMenu)}
           >
             {showMobileMenu ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
           </Button>
           
-          {/* Logo */}
+          {/* Logo - Fully Circular, No White Background */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
             <img 
               src="https://customer-assets.emergentagent.com/job_85cbbcde-4708-4a58-aa4c-eb9f7d1244f3/artifacts/2asasfb6_image.png" 
               alt="Mezbaan-e-Khaas" 
-              className="w-10 h-10 rounded-full object-cover bg-white p-1"
+              className="w-10 h-10 rounded-full object-cover border-2 border-cream"
             />
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold">Mezbaan-e-Khaas</h1>
@@ -657,7 +657,17 @@ export default function App() {
               </Button>
             </div>
           )}
-          {user && (
+          {!user ? (
+            <Button 
+              onClick={() => setCurrentPage('login')} 
+              variant="ghost" 
+              size="sm" 
+              className="text-white hover:bg-lightBrown bg-lightBrown/80 hidden sm:flex"
+            >
+              <User className="w-4 h-4 mr-1" />
+              Login / Signup
+            </Button>
+          ) : (
             <Button 
               onClick={handleLogout} 
               variant="ghost" 
@@ -671,82 +681,86 @@ export default function App() {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay - Close on outside click */}
       {showMobileMenu && (
-        <div className="absolute top-full left-0 w-full bg-charcoal text-white shadow-xl animate-slideIn">
-          <nav className="container mx-auto px-4 py-6 space-y-3">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-lg hover:bg-lightBrown/20"
-              onClick={() => { setCurrentPage('home'); setShowMobileMenu(false); }}
-            >
-              <HomeIcon className="w-5 h-5 mr-3" />
-              Home
-            </Button>
-            
-            {user?.role === 'customer' && (
-              <>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
-                  onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
-                >
-                  <UtensilsCrossed className="w-5 h-5 mr-3" />
-                  Menu
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
-                  onClick={() => { setCurrentPage('customer-dashboard'); setShowMobileMenu(false); }}
-                >
-                  <ListOrdered className="w-5 h-5 mr-3" />
-                  My Orders
-                </Button>
-              </>
-            )}
-
-            {user?.role === 'staff' && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40" 
+            onClick={() => setShowMobileMenu(false)}
+          />
+          <div className="absolute top-full left-0 w-full max-w-xs bg-charcoal text-white shadow-xl animate-slideIn z-50">
+            <nav className="container mx-auto px-4 py-6 space-y-3">
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-lg hover:bg-lightBrown/20"
-                onClick={() => { setCurrentPage('staff-dashboard'); setShowMobileMenu(false); }}
+                onClick={() => { setCurrentPage('home'); setShowMobileMenu(false); }}
               >
-                <ChefHat className="w-5 h-5 mr-3" />
-                Staff Dashboard
+                <HomeIcon className="w-5 h-5 mr-3" />
+                Home
               </Button>
-            )}
+              
+              {user?.role === 'customer' && currentTab !== 'cart' && currentTab !== 'orders' && (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-lg hover:bg-lightBrown/20"
+                    onClick={() => { setCurrentPage('customer-dashboard'); setCurrentTab('menu'); setShowMobileMenu(false); }}
+                  >
+                    <UtensilsCrossed className="w-5 h-5 mr-3" />
+                    Menu
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-lg hover:bg-lightBrown/20"
+                    onClick={() => { setCurrentPage('customer-dashboard'); setCurrentTab('reservations'); setShowMobileMenu(false); }}
+                  >
+                    <Calendar className="w-5 h-5 mr-3" />
+                    Reservations
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-lg hover:bg-lightBrown/20"
+                    onClick={() => { setCurrentPage('customer-dashboard'); setCurrentTab('orders'); setShowMobileMenu(false); }}
+                  >
+                    <ListOrdered className="w-5 h-5 mr-3" />
+                    My Orders
+                  </Button>
+                </>
+              )}
 
-            {!user ? (
-              <>
+              {user?.role === 'staff' && (
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start text-lg hover:bg-lightBrown/20"
-                  onClick={() => { setCurrentPage('customer-login'); setShowMobileMenu(false); }}
-                >
-                  <User className="w-5 h-5 mr-3" />
-                  Customer Login
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
-                  onClick={() => { setCurrentPage('staff-login'); setShowMobileMenu(false); }}
+                  onClick={() => { setCurrentPage('staff-dashboard'); setShowMobileMenu(false); }}
                 >
                   <ChefHat className="w-5 h-5 mr-3" />
-                  Staff Login
+                  Staff Dashboard
                 </Button>
-              </>
-            ) : (
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-lg hover:bg-lightBrown/20 text-red-400"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-5 h-5 mr-3" />
-                Logout
-              </Button>
-            )}
-          </nav>
-        </div>
+              )}
+
+              {!user ? (
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-lightBrown/20"
+                  onClick={() => { setCurrentPage('login'); setShowMobileMenu(false); }}
+                >
+                  <User className="w-5 h-5 mr-3" />
+                  Login / Signup
+                </Button>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-lg hover:bg-lightBrown/20 text-red-400"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  Logout
+                </Button>
+              )}
+            </nav>
+          </div>
+        </>
       )}
     </header>
   )
