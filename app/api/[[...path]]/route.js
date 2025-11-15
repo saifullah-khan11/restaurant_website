@@ -514,6 +514,22 @@ export async function DELETE(request) {
       return NextResponse.json({ success: true })
     }
 
+    // Delete reservation
+    if (path.startsWith('/api/reservations/')) {
+      const reservationId = path.split('/').pop()
+
+      const { error } = await supabase
+        .from('reservations')
+        .delete()
+        .eq('id', reservationId)
+
+      if (error) {
+        return handleError(error, 'Failed to delete reservation')
+      }
+
+      return NextResponse.json({ success: true })
+    }
+
   } catch (error) {
     return handleError(error)
   }
