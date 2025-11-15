@@ -579,12 +579,22 @@ export default function App() {
     setCart([])
     setOrders([])
     setAllOrders([])
+    setReservations([])
     setCurrentPage('home')
     setShowMobileMenu(false)
+    localStorage.removeItem('mezbaan_session')
     toast({
       title: 'Logged out',
       description: 'You have been logged out successfully'
     })
+  }
+
+  // Scroll to category
+  const scrollToCategory = (category) => {
+    const element = document.getElementById(`category-${category}`)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
   }
 
   // Navigate to cart
