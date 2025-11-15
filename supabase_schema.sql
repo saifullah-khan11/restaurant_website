@@ -111,6 +111,11 @@ CREATE POLICY "Allow public read order_items" ON order_items FOR SELECT USING (t
 CREATE POLICY "Allow public insert order_items" ON order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update order_items" ON order_items FOR UPDATE USING (true);
 
+CREATE POLICY "Allow public read reservations" ON reservations FOR SELECT USING (true);
+CREATE POLICY "Allow public insert reservations" ON reservations FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update reservations" ON reservations FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete reservations" ON reservations FOR DELETE USING (true);
+
 -- Create Indexes for Performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
